@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        Automated Presentation Scheduling System
+    </title>
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+    
+
+    <div class="logo">
+
+        <h2>APSS</h2>
+
+        <p>
+            Presentation Scheduling System
+        </p>
+
+    </div>
+
+
+    <ul>
+
+    <li>
+        <a href="/index">
+            <i class="fa-solid fa-house"></i>
+            Dashboard
+        </a>
+    </li>
+
+    <li>
+        <a href="/timetable">
+            <i class="fa-solid fa-file-import"></i>
+            Retrieve Timetable
+        </a>
+    </li>
+
+    <li>
+        <a href="/common_availability">
+            <i class="fa-solid fa-calendar-days"></i>
+            Generate Common Availability
+        </a>
+    </li>
+
+    <li>
+        <a href="/students">
+            <i class="fa-solid fa-user-graduate"></i>
+            Student Management
+        </a>
+    </li>
+
+    <li>
+        <a href="/student_requests">
+            <i class="fa-solid fa-file-circle-check"></i>
+            Student Requests
+        </a>
+    </li>
+
+    <li>
+        <a href="/presentation_schedule">
+            <i class="fa-solid fa-calendar-check"></i>
+            Presentation Schedule
+        </a>
+    </li>
+
+    <li>
+        <a href="/conflict_report">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            Conflict Report
+        </a>
+    </li>
+
+    <li>
+
+    <a href="/">
+
+        <i class="fa-solid fa-arrow-left"></i>
+
+        Back to Role Selection
+
+    </a>
+
+</li>
+
+</ul>
+
+</div>
+
+
+
+<div class="main">
+
+    <div class="topbar">
+
+    <div>
+        <h2>
+            Dashboard
+        </h2>
+
+        <p>
+            Automated Presentation Scheduling System
+        </p>
+    </div>
+
+
+
+    <!-- Lecturer Profile -->
+
+    <div class="lecturer-profile">
+
+        <div class="profile-icon">
+
+            <i class="fa-solid fa-user"></i>
+
+        </div>
+
+
+        <div class="profile-info">
+
+            <h4>
+                {{ session["staff_name"] }}
+            </h4>
+
+            <p>
+                Lecturer
+            </p>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+
+    <div class="content">
+
+        {% block content %}
+
+        {% endblock %}
+
+    </div>
+
+</div>
+
+</body>
+
+</html>

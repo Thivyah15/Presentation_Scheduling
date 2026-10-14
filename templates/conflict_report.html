@@ -1,0 +1,239 @@
+{% extends "layout.html" %}
+
+
+{% block content %}
+
+
+
+<div class="page-header">
+
+    <h1>
+        My Conflict Report
+    </h1>
+
+
+    <p>
+        View your presentation scheduling conflict details.
+    </p>
+
+</div>
+
+
+
+
+
+<div class="report-action">
+
+
+    <a href="{{ url_for('generate_conflict_report_page') }}" class="generate-btn">
+
+
+        <i class="fa-solid fa-rotate"></i>
+
+
+        Check My Conflict Report
+
+
+    </a>
+
+
+</div>
+
+
+
+
+
+
+
+<div class="report-card">
+
+
+
+{% if conflicts %}
+
+
+
+
+<div class="table-container">
+
+
+<table>
+
+
+
+<thead>
+
+
+<tr>
+
+
+<th>
+Student ID
+</th>
+
+
+<th>
+Student Name
+</th>
+
+
+<th>
+Supervisor
+</th>
+
+
+<th>
+2nd Marker
+</th>
+
+
+<th>
+Conflict Type
+</th>
+
+
+<th>
+Details
+</th>
+
+
+</tr>
+
+
+</thead>
+
+
+
+
+<tbody>
+
+
+
+{% for conflict in conflicts %}
+
+
+
+<tr>
+
+
+
+<td>
+{{ conflict["Student ID"] }}
+</td>
+
+
+
+<td>
+{{ conflict["Student Name"] }}
+</td>
+
+
+
+<td>
+{{ conflict["Supervisor"] }}
+</td>
+
+
+
+<td>
+{{ conflict["2nd Marker"] }}
+</td>
+
+
+
+
+<td>
+
+
+<span class="conflict-label">
+
+
+{{ conflict["Conflict Type"] }}
+
+
+</span>
+
+
+</td>
+
+
+
+
+
+<td class="details">
+
+
+{{ conflict["Details"] }}
+
+
+</td>
+
+
+
+
+</tr>
+
+
+
+{% endfor %}
+
+
+
+
+</tbody>
+
+
+
+</table>
+
+
+
+</div>
+
+
+
+
+
+{% else %}
+
+
+
+
+<div class="no-conflict">
+
+
+
+<i class="fa-solid fa-circle-check"></i>
+
+
+
+<h3>
+No Conflict Found
+</h3>
+
+
+
+<p>
+Your presentation schedule does not have any conflict.
+</p>
+
+
+
+</div>
+
+
+
+
+
+{% endif %}
+
+
+
+
+</div>
+
+
+
+
+
+{% endblock %}

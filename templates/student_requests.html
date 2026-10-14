@@ -1,0 +1,292 @@
+{% extends "layout.html" %}
+
+
+{% block content %}
+
+
+<div class="page-header">
+
+    <h1>
+        Student Presentation Requests
+    </h1>
+
+    <p>
+        Review and manage student presentation slot requests.
+    </p>
+
+</div>
+
+
+
+<div class="table-card">
+
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Student ID</th>
+
+<th>Student Name</th>
+
+<th>Supervisor</th>
+
+<th>2nd Marker</th>
+
+<th>Day</th>
+
+<th>Date</th>
+
+<th>Time</th>
+
+<th>Status</th>
+
+<th>Action</th>
+
+</tr>
+
+</thead>
+
+
+
+<tbody>
+
+
+{% if requests.empty %}
+
+
+<tr>
+
+<td colspan="9">
+
+No student requests available.
+
+</td>
+
+</tr>
+
+
+{% else %}
+
+
+
+{% for index, row in requests.iterrows() %}
+
+
+<tr>
+
+
+<td>
+{{ row["Student ID"] }}
+</td>
+
+
+<td>
+{{ row["Student Name"] }}
+</td>
+
+
+<td>
+{{ row["Supervisor"] }}
+</td>
+
+
+<td>
+{{ row["2nd Marker"] }}
+</td>
+
+
+<td>
+{{ row["Day"] }}
+</td>
+
+
+<td>
+{{ row["Display Date"] }}
+</td>
+
+
+<td>
+{{ row["Presentation Slot"] }}
+</td>
+
+
+
+<!-- Overall Status -->
+
+<td>
+
+
+{% if row["Status"] == "Scheduled" %}
+
+<span class="status accepted">
+Scheduled
+</span>
+
+
+{% elif row["Status"] == "Rejected" %}
+
+<span class="status rejected">
+Rejected
+</span>
+
+
+{% else %}
+
+<span class="status pending">
+Pending
+</span>
+
+
+{% endif %}
+
+
+</td>
+
+
+
+
+
+<!-- Action -->
+
+<td>
+
+
+{% if session["staff_name"] == row["Supervisor"] %}
+
+
+    {% if row["Supervisor Status"] == "Pending" %}
+
+
+        <form action="/staff_approve_request/{{ row['Excel Index'] }}"
+              method="POST"
+              style="display:inline;">
+
+
+            <button class="approve-btn">
+
+                Accept
+
+            </button>
+
+
+        </form>
+
+
+
+        <form action="/staff_reject_request/{{ row['Excel Index'] }}"
+              method="POST"
+              style="display:inline;">
+
+
+            <button class="reject-btn">
+
+                Reject
+
+            </button>
+
+
+        </form>
+
+
+    {% else %}
+
+
+        <span>
+            Decision submitted
+        </span>
+
+
+    {% endif %}
+
+
+
+
+
+{% elif session["staff_name"] == row["2nd Marker"] %}
+
+
+
+    {% if row["2nd Marker Status"] == "Pending" %}
+
+
+        <form action="/staff_approve_request/{{ row['Excel Index'] }}"
+              method="POST"
+              style="display:inline;">
+
+
+            <button class="approve-btn">
+
+                Accept
+
+            </button>
+
+
+        </form>
+
+
+
+        <form action="/staff_reject_request/{{ row['Excel Index'] }}"
+              method="POST"
+              style="display:inline;">
+
+
+            <button class="reject-btn">
+
+                Reject
+
+            </button>
+
+
+        </form>
+
+
+    {% else %}
+
+
+        <span>
+            Decision submitted
+        </span>
+
+
+    {% endif %}
+
+
+
+
+
+{% else %}
+
+
+-
+    
+
+{% endif %}
+
+
+</td>
+
+
+
+</tr>
+
+
+{% endfor %}
+
+
+
+{% endif %}
+
+
+</tbody>
+
+
+</table>
+
+
+</div>
+
+
+{% endblock %}

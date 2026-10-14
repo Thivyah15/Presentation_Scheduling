@@ -1,0 +1,203 @@
+{% extends "student_layout.html" %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <h1>
+        My Presentation
+    </h1>
+
+    <p>
+        View your confirmed presentation schedule.
+    </p>
+
+</div>
+
+
+
+{% if presentation %}
+
+
+<div class="presentation-card">
+
+
+    <div class="card-title">
+
+        <i class="fa-solid fa-calendar-check"></i>
+
+        <h2>
+            Presentation Details
+        </h2>
+
+    </div>
+
+
+    <div class="presentation-details">
+
+
+        <div class="detail-item">
+
+            <label>
+                Student ID
+            </label>
+
+            <span>
+                {{ presentation["Student ID"] }}
+            </span>
+
+        </div>
+
+
+
+        <div class="detail-item">
+
+            <label>
+                Student Name
+            </label>
+
+            <span>
+                {{ presentation["Student Name"] }}
+            </span>
+
+        </div>
+
+
+
+        <div class="detail-item">
+
+            <label>
+                Supervisor
+            </label>
+
+            <span>
+                {{ presentation["Supervisor"] }}
+            </span>
+
+        </div>
+
+
+
+        <div class="detail-item">
+
+            <label>
+                2nd Marker
+            </label>
+
+            <span>
+                {{ presentation["2nd Marker"] }}
+            </span>
+
+        </div>
+
+
+
+        <div class="detail-item">
+
+            <label>
+                Presentation Day
+            </label>
+
+            <span>
+                {{ presentation["Day"] }}
+            </span>
+
+        </div>
+
+
+
+        <div class="detail-item">
+
+            <label>
+                Presentation Date
+            </label>
+
+            <span>
+                {{ presentation["Date"] }}
+            </span>
+
+        </div>
+
+
+
+        <div class="detail-item">
+
+            <label>
+                Presentation Time
+            </label>
+
+            <span>
+                {{ presentation["Presentation Slot"] }}
+            </span>
+
+        </div>
+
+
+
+        <div class="detail-item">
+
+            <label>
+                Status
+            </label>
+
+            <span class="status accepted">
+
+                Scheduled
+
+            </span>
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+
+{% else %}
+
+
+<div class="empty-card">
+
+
+    <i class="fa-solid fa-calendar-xmark"></i>
+
+
+    <h3>
+
+        No Presentation Scheduled
+
+    </h3>
+
+
+    <p>
+
+        Your presentation has not been scheduled yet.
+
+        <br><br>
+
+        Please submit a request from the Available Slots page.
+
+    </p>
+
+
+    <a href="/available_slots"
+       class="primary-btn">
+
+        <i class="fa-solid fa-calendar-plus"></i>
+
+        View Available Slots
+
+    </a>
+
+
+</div>
+
+
+{% endif %}
+
+
+
+{% endblock %}

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Student Portal</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+    <div class="logo">
+
+        <h2>Student Portal</h2>
+
+    </div>
+
+<ul>
+
+    <li>
+
+        <a href="/student">
+
+            <i class="fa-solid fa-house"></i>
+
+            Dashboard
+
+        </a>
+
+    </li>
+
+    <li>
+
+        <a href="/available_slots">
+
+            <i class="fa-solid fa-calendar-days"></i>
+
+            Available Slots
+
+        </a>
+
+    </li>
+
+    <li>
+
+        <a href="/request_status">
+
+            <i class="fa-solid fa-clock"></i>
+
+            Request Status
+
+        </a>
+
+    </li>
+
+    <li>
+
+        <a href="/my_presentation">
+
+            <i class="fa-solid fa-calendar-check"></i>
+
+            My Presentation
+
+        </a>
+
+    </li>
+
+    <li>
+
+        <a href="/">
+
+            <i class="fa-solid fa-arrow-left"></i>
+
+            Back to Role Selection
+
+        </a>
+
+    </li>
+
+</ul>
+
+</div>
+
+<div class="main">
+
+    <div class="topbar">
+
+        <h2>Student Dashboard</h2>
+
+    </div>
+
+    <div class="content">
+
+        {% block content %}
+
+        {% endblock %}
+
+    </div>
+
+</div>
+
+</body>
+
+</html>

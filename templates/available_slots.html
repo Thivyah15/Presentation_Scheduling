@@ -1,0 +1,269 @@
+{% extends "student_layout.html" %}
+
+
+{% block content %}
+
+
+
+<div class="page-header">
+
+    <h1>
+        Available Presentation Slots
+    </h1>
+
+
+    <p>
+        Select your preferred presentation slot.
+    </p>
+
+</div>
+
+
+
+
+
+<div class="table-card">
+
+
+
+<table>
+
+
+<thead>
+
+
+<tr>
+
+<th>
+Day
+</th>
+
+
+<th>
+Date
+</th>
+
+
+<th>
+Time
+</th>
+
+
+<th>
+Supervisor
+</th>
+
+
+<th>
+2nd Marker
+</th>
+
+
+<th>
+Action
+</th>
+
+
+</tr>
+
+
+</thead>
+
+
+
+
+
+<tbody>
+
+
+
+
+{% if slots.empty %}
+
+
+
+<tr>
+
+
+<td colspan="6">
+
+
+No available presentation slots.
+
+
+</td>
+
+
+</tr>
+
+
+
+
+
+{% else %}
+
+
+
+
+
+{% for index,row in slots.iterrows() %}
+
+
+
+
+<tr>
+
+
+
+
+<td>
+
+{{ row["Day"] }}
+
+</td>
+
+
+
+
+
+<td>
+
+{{ row["Display Date"] }}
+
+</td>
+
+
+
+
+
+<td>
+
+
+<span class="slot-badge">
+
+{{ row["Presentation Slot"] }}
+
+</span>
+
+
+</td>
+
+
+
+
+
+<td>
+
+{{ row["Supervisor Name"] }}
+
+</td>
+
+
+
+
+
+<td>
+
+{{ row["2nd Marker Name"] }}
+
+</td>
+
+
+
+
+
+<td>
+
+
+<form action="/request_slot" method="POST">
+
+
+
+<input type="hidden"
+       name="day"
+       value="{{ row['Day'] }}">
+
+
+
+<input type="hidden"
+       name="date"
+       value="{{ row['Date'] }}">
+
+
+
+<input type="hidden"
+       name="slot"
+       value="{{ row['Presentation Slot'] }}">
+
+
+
+<input type="hidden"
+       name="supervisor"
+       value="{{ row['Supervisor Name'] }}">
+
+
+
+<input type="hidden"
+       name="marker"
+       value="{{ row['2nd Marker Name'] }}">
+
+
+
+
+
+<button type="submit"
+        class="select-btn">
+
+
+<i class="fa-solid fa-calendar-plus"></i>
+
+Request
+
+
+</button>
+
+
+
+
+</form>
+
+
+
+</td>
+
+
+
+
+
+</tr>
+
+
+
+
+
+{% endfor %}
+
+
+
+
+
+{% endif %}
+
+
+
+
+
+</tbody>
+
+
+
+</table>
+
+
+
+</div>
+
+
+
+
+{% endblock %}

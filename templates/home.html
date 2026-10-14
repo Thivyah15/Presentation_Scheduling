@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Automated Presentation Scheduling System</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+</head>
+
+<body class="landing-page">
+
+<div class="landing-container">
+
+    <!-- ================= TITLE ================= -->
+
+    <div class="landing-header">
+
+        <h1>
+            Automated Presentation Scheduling System
+        </h1>
+
+        <p>
+            Welcome to the Automated Presentation Scheduling System (APSS).
+            Please select your role to continue.
+        </p>
+
+    </div>
+
+
+    <!-- ================= ROLE CARD ================= -->
+
+    <div class="role-container">
+
+        <!-- Lecturer -->
+
+        <!-- Lecturer -->
+        <a href="{{ url_for('staff_login') }}" class="role-card">
+            <div class="role-icon">
+                <i class="fa-solid fa-chalkboard-user"></i>
+            </div>
+
+            <h2>Lecturer</h2>
+
+            <p>
+                Manage staff timetables, generate common availability,
+                assign presentation schedules, view conflict reports
+                and monitor staff utilization.
+            </p>
+
+            <span>
+                Continue
+                <i class="fa-solid fa-arrow-right"></i>
+            </span>
+        </a>
+
+        <!-- Student -->
+        <a href="{{ url_for('student_login') }}" class="role-card">
+            <div class="role-icon">
+                <i class="fa-solid fa-user-graduate"></i>
+            </div>
+
+            <h2>Student</h2>
+
+            <p>
+                View your presentation schedule, supervisor,
+                second marker and presentation information.
+            </p>
+
+            <span>
+                Continue
+                <i class="fa-solid fa-arrow-right"></i>
+            </span>
+        </a>
+
+    </div>
+
+</div>
+
+</body>
+
+</html>

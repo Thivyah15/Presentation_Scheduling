@@ -1,0 +1,104 @@
+{% extends "student_layout.html" %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <h1>Request Status</h1>
+
+    <p>
+        Check your presentation slot request status.
+    </p>
+
+</div>
+
+<div class="table-card">
+
+<table>
+
+    <thead>
+
+        <tr>
+            <th>Day</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Supervisor</th>
+            <th>2nd Marker</th>
+            <th>Status</th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+    {% if requests.empty %}
+
+        <tr>
+            <td colspan="6">
+                No presentation request found.
+            </td>
+        </tr>
+
+    {% else %}
+
+        {% for index, row in requests.iterrows() %}
+
+        <tr>
+
+            <td>{{ row["Day"] }}</td>
+
+            <td>{{ row["Display Date"] }}</td>
+
+            <td>
+                <span class="slot-badge">
+                    {{ row["Presentation Slot"] }}
+                </span>
+            </td>
+
+            <td>{{ row["Supervisor"] }}</td>
+
+            <td>{{ row["2nd Marker"] }}</td>
+
+            <td>
+
+                {% if row["Status"] == "Pending" %}
+
+                    <span class="status pending">
+                        Pending
+                    </span>
+
+                {% elif row["Status"] == "Scheduled" %}
+
+                    <span class="status accepted">
+                        Scheduled
+                    </span>
+
+                {% elif row["Status"] == "Rejected" %}
+
+                    <span class="status rejected">
+                        Rejected
+                    </span>
+
+                {% else %}
+
+                    <span class="status pending">
+                        {{ row["Status"] }}
+                    </span>
+
+                {% endif %}
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    {% endif %}
+
+    </tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <h1>
+        Presentation Schedule
+    </h1>
+
+    <p>
+        View all approved presentation schedules.
+    </p>
+
+</div>
+
+
+<div class="schedule-card">
+
+    <div class="card-title">
+
+        <i class="fa-solid fa-calendar-check"></i>
+
+        <h2>
+            Approved Presentation Schedule
+        </h2>
+
+    </div>
+
+
+    <table>
+
+        <thead>
+
+            <tr>
+
+                <th>Student ID</th>
+
+                <th>Student Name</th>
+
+                <th>Supervisor</th>
+
+                <th>2nd Marker</th>
+
+                <th>Day</th>
+
+                <th>Date</th>
+
+                <th>Presentation Slot</th>
+
+                <th>Status</th>
+
+                <th>Export</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% if schedule.empty %}
+
+            <tr>
+
+                <td colspan="9">
+
+                    No approved presentation schedule available.
+
+                </td>
+
+            </tr>
+
+        {% else %}
+
+            {% for index, row in schedule.iterrows() %}
+
+            <tr>
+
+                <td>{{ row["Student ID"] }}</td>
+
+                <td>{{ row["Student Name"] }}</td>
+
+                <td>{{ row["Supervisor"] }}</td>
+
+                <td>{{ row["2nd Marker"] }}</td>
+
+                <td>{{ row["Day"] }}</td>
+
+                <td>{{ row["Display Date"] }}</td>
+
+                <td>
+
+                    <span class="slot-badge">
+
+                        {{ row["Presentation Slot"] }}
+
+                    </span>
+
+                </td>
+
+                <td>
+
+                    <span class="status accepted">
+
+                        Scheduled
+
+                    </span>
+
+                </td>
+
+                <td>
+
+                    <a href="{{ url_for('export_student_calendar', index=index) }}"
+                       class="export-btn">
+
+                        <i class="fa-solid fa-file-export"></i>
+
+                        Export
+
+                    </a>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        {% endif %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,431 @@
+{% extends "layout.html" %}
+
+
+{% block content %}
+
+
+
+<div class="page-header">
+
+
+<h1>
+Retrieve Staff Timetable
+</h1>
+
+
+<p>
+Retrieve Supervisor and 2nd Marker timetable from APU or upload Excel.
+</p>
+
+
+</div>
+
+
+
+
+
+<div class="timetable-container">
+
+
+
+
+
+<!-- ================= SUPERVISOR ================= -->
+
+
+<div class="timetable-card">
+
+
+<div class="card-title">
+
+<i class="fa-solid fa-user-tie"></i>
+
+<h2>
+Supervisor Timetable
+</h2>
+
+
+</div>
+
+
+
+
+
+<form method="POST">
+
+
+<input type="hidden"
+name="method"
+value="supervisor_api">
+
+
+
+
+
+<div class="input-group">
+
+
+<label>
+Supervisor
+</label>
+
+
+
+<input
+list="staffList"
+name="supervisor"
+placeholder="Type or select supervisor"
+required
+>
+
+
+
+</div>
+
+
+
+
+
+
+<div class="input-group">
+
+
+<label>
+Teaching Week
+</label>
+
+
+<input
+type="date"
+name="supervisor_week"
+required
+>
+
+
+</div>
+
+
+
+
+
+<button class="retrieve-btn">
+
+
+<i class="fa-solid fa-download"></i>
+
+Retrieve Supervisor
+
+
+</button>
+
+
+
+</form>
+
+
+</div>
+
+
+
+
+
+
+
+<!-- ================= 2ND MARKER ================= -->
+
+
+
+<div class="timetable-card">
+
+
+<div class="card-title">
+
+
+<i class="fa-solid fa-user-check"></i>
+
+
+<h2>
+2nd Marker Timetable
+</h2>
+
+
+</div>
+
+
+
+
+
+
+<form method="POST">
+
+
+
+<input type="hidden"
+name="method"
+value="marker_api">
+
+
+
+
+
+<div class="input-group">
+
+
+<label>
+2nd Marker
+</label>
+
+
+
+<input
+list="staffList"
+name="marker"
+placeholder="Type or select 2nd marker"
+required
+>
+
+
+</div>
+
+
+
+
+
+<div class="input-group">
+
+
+<label>
+Teaching Week
+</label>
+
+
+<input
+type="date"
+name="marker_week"
+required
+>
+
+
+</div>
+
+
+
+
+<button class="retrieve-btn">
+
+
+<i class="fa-solid fa-download"></i>
+
+Retrieve 2nd Marker
+
+
+</button>
+
+
+
+
+</form>
+
+
+</div>
+
+
+
+
+
+
+
+<!-- ================= EXCEL ================= -->
+
+
+<div class="timetable-card">
+
+
+<div class="card-title">
+
+
+<i class="fa-solid fa-file-excel"></i>
+
+
+<h2>
+Import Excel Timetable
+</h2>
+
+
+</div>
+
+
+
+
+
+
+<form method="POST"
+enctype="multipart/form-data">
+
+
+
+<input type="hidden"
+name="method"
+value="excel">
+
+
+
+
+
+<div class="input-group">
+
+
+<label>
+Timetable Type
+</label>
+
+
+
+<select name="excel_type" required>
+
+
+<option value="">
+Choose Type
+</option>
+
+
+<option value="supervisor">
+Supervisor
+</option>
+
+
+<option value="second_marker">
+2nd Marker
+</option>
+
+
+
+</select>
+
+
+</div>
+
+
+
+
+
+
+<div class="input-group">
+
+
+<label>
+Excel File
+</label>
+
+
+<input
+type="file"
+name="file"
+accept=".xlsx"
+required
+>
+
+
+</div>
+
+
+
+
+
+<button class="retrieve-btn">
+
+
+<i class="fa-solid fa-upload"></i>
+
+
+Upload Excel
+
+
+</button>
+
+
+
+</form>
+
+
+
+</div>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+<!-- Staff suggestion list -->
+
+
+<datalist id="staffList">
+
+
+{% for s in staff %}
+
+
+<option value="{{s[1]}}">
+
+
+{% endfor %}
+
+
+</datalist>
+
+
+
+
+
+
+
+
+{% if success %}
+
+
+<div class="success-card">
+
+
+<i class="fa-solid fa-circle-check"></i>
+
+{{success}}
+
+
+</div>
+
+
+{% endif %}
+
+
+
+
+
+{% if error %}
+
+
+<div class="success-card">
+
+
+<i class="fa-solid fa-circle-exclamation"></i>
+
+{{error}}
+
+
+</div>
+
+
+{% endif %}
+
+
+
+
+
+{% endblock %}

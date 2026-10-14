@@ -1,0 +1,301 @@
+{% extends "student_layout.html" %}
+
+
+{% block content %}
+
+
+
+<div class="page-header">
+
+    <h1>
+        Student Dashboard
+    </h1>
+
+    <p>
+        Overview of your presentation schedule.
+    </p>
+
+</div>
+
+
+
+
+<div class="dashboard-cards">
+
+
+
+    <!-- Presentation Date -->
+
+    <div class="dashboard-card">
+
+
+        <div class="card-icon">
+
+            <i class="fa-solid fa-calendar-days"></i>
+
+        </div>
+
+
+
+        <div>
+
+            <h4>
+                Presentation Date
+            </h4>
+
+
+            <p>
+
+            {% if presentation %}
+
+                {{ presentation["Display Date"] }}
+
+            {% else %}
+
+                Not Assigned
+
+            {% endif %}
+
+
+            </p>
+
+
+        </div>
+
+
+    </div>
+
+
+
+
+
+    <!-- Presentation Time -->
+
+    <div class="dashboard-card">
+
+
+        <div class="card-icon">
+
+            <i class="fa-solid fa-clock"></i>
+
+        </div>
+
+
+
+        <div>
+
+            <h4>
+                Presentation Time
+            </h4>
+
+
+            <p>
+
+            {% if presentation %}
+
+                {{ presentation["Presentation Slot"] }}
+
+            {% else %}
+
+                Not Assigned
+
+            {% endif %}
+
+
+            </p>
+
+
+        </div>
+
+
+    </div>
+
+
+
+
+
+    <!-- Supervisor -->
+
+    <div class="dashboard-card">
+
+
+        <div class="card-icon">
+
+            <i class="fa-solid fa-user-tie"></i>
+
+        </div>
+
+
+
+        <div>
+
+            <h4>
+                Supervisor
+            </h4>
+
+
+            <p>
+
+            {% if presentation %}
+
+                {{ presentation["Supervisor"] }}
+
+            {% else %}
+
+                Not Assigned
+
+            {% endif %}
+
+
+            </p>
+
+
+        </div>
+
+
+    </div>
+
+
+
+
+
+    <!-- Status -->
+
+    <div class="dashboard-card">
+
+
+        <div class="card-icon">
+
+            <i class="fa-solid fa-circle-check"></i>
+
+        </div>
+
+
+
+        <div>
+
+            <h4>
+                Status
+            </h4>
+
+
+                <p class="status {{ presentation['Status']|lower }}">
+                    {{ presentation["Status"] }}
+                </p>
+
+
+        </div>
+
+
+    </div>
+
+
+
+</div>
+
+
+
+
+
+
+
+<div class="dashboard-info">
+
+
+    <div class="info-header">
+
+
+        <i class="fa-solid fa-chart-line"></i>
+
+
+        <h2>
+            Presentation Overview
+        </h2>
+
+
+    </div>
+
+
+
+
+    {% if presentation %}
+
+
+    <p>
+
+        Your presentation has been assigned successfully.
+
+    </p>
+
+
+
+    <div class="overview-details">
+
+
+        <p>
+            <strong>Supervisor:</strong>
+
+            {{ presentation["Supervisor"] }}
+
+        </p>
+
+
+        <p>
+            <strong>2nd Marker:</strong>
+
+            {{ presentation["2nd Marker"] }}
+
+        </p>
+
+
+        <p>
+            <strong>Date:</strong>
+
+            {{ presentation["Display Date"] }}
+
+        </p>
+
+
+        <p>
+            <strong>Time:</strong>
+
+            {{ presentation["Presentation Slot"] }}
+
+        </p>
+
+
+    </div>
+
+
+
+    {% else %}
+
+
+
+    <p>
+
+        Your presentation schedule information will appear here once your supervisor and 2nd marker approve your request.
+
+    </p>
+
+
+
+    {% endif %}
+
+
+
+
+    <a href="{{ url_for('my_presentation') }}" class="view-btn">
+
+        View My Presentation
+
+    </a>
+
+
+
+</div>
+
+
+
+
+{% endblock %}

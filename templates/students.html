@@ -1,0 +1,494 @@
+{% extends "layout.html" %}
+
+
+{% block content %}
+
+
+
+<div class="page-header">
+
+    <h1>
+        Student Management
+    </h1>
+
+    <p>
+        Import and manage student information with assigned supervisors and 2nd markers.
+    </p>
+
+</div>
+
+
+
+
+
+{% if message %}
+
+<div class="alert-box">
+
+    {{ message }}
+
+</div>
+
+{% endif %}
+
+
+
+
+
+
+<!-- ===============================
+     IMPORT STUDENT DATA
+================================ -->
+
+
+<div class="import-card">
+
+
+    <div class="card-title">
+
+
+        <i class="fa-solid fa-file-import"></i>
+
+
+        <h2>
+            Import Student Data
+        </h2>
+
+
+    </div>
+
+
+
+
+    <p>
+        Upload student information using an Excel file.
+    </p>
+
+
+
+
+    <form action="/import_students"
+          method="POST"
+          enctype="multipart/form-data">
+
+
+
+        <input
+            type="file"
+            name="student_file"
+            accept=".xlsx"
+            required
+        >
+
+
+
+
+        <button 
+            class="primary-btn"
+            type="submit">
+
+
+            <i class="fa-solid fa-upload"></i>
+
+            Import Students
+
+
+        </button>
+
+
+
+    </form>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<!-- ===============================
+     MANUAL ADD STUDENT
+================================ -->
+
+
+<div class="student-form-card">
+
+
+
+    <div class="card-title">
+
+
+        <i class="fa-solid fa-user-plus"></i>
+
+
+        <h2>
+            Add Student Manually
+        </h2>
+
+
+    </div>
+
+
+
+
+
+    <form method="POST">
+
+
+
+
+
+        <div class="form-row">
+
+
+
+            <div class="input-group">
+
+
+                <label>
+                    Student ID
+                </label>
+
+
+                <input
+                    type="text"
+                    name="student_id"
+                    placeholder="Enter student ID"
+                    required
+                >
+
+
+            </div>
+
+
+
+
+
+            <div class="input-group">
+
+
+                <label>
+                    Student Name
+                </label>
+
+
+                <input
+                    type="text"
+                    name="student_name"
+                    placeholder="Enter student name"
+                    required
+                >
+
+
+            </div>
+
+
+
+        </div>
+
+
+        <div class="input-group"> 
+            <label>Student Email</label> 
+            <input type="email" 
+            name="student_email" 
+            placeholder="Enter student email address" required > 
+        </div>
+
+
+
+
+        <div class="form-row">
+
+            <div class="input-group">
+
+                <label>Supervisor</label>
+
+                <input
+                    type="text"
+                    name="supervisor"
+                    list="supervisor_list"
+                    placeholder="Type or select supervisor"
+                    required
+                >
+
+                <datalist id="supervisor_list">
+                    {% for s in staff %}
+                        <option value="{{ s[1] }}">
+                    {% endfor %}
+                </datalist>
+
+            </div>
+
+            <div class="input-group">
+
+                <label>2nd Marker</label>
+
+                <input
+                    type="text"
+                    name="marker"
+                    list="marker_list"
+                    placeholder="Type or select 2nd marker"
+                    required
+                >
+
+                <datalist id="marker_list">
+                    {% for s in staff %}
+                        <option value="{{ s[1] }}">
+                    {% endfor %}
+                </datalist>
+
+            </div>
+        </div>
+
+
+
+
+
+
+
+        <button
+            class="primary-btn"
+            type="submit">
+
+
+
+            <i class="fa-solid fa-plus"></i>
+
+
+            Add Student
+
+
+
+        </button>
+
+
+
+
+
+    </form>
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<!-- ===============================
+     STUDENT LIST
+================================ -->
+
+
+<div class="student-table-card">
+
+
+
+    <div class="card-title">
+
+
+        <i class="fa-solid fa-users"></i>
+
+
+        <h2>
+            Student Information List
+        </h2>
+
+
+    </div>
+
+
+
+
+
+
+<table>
+
+
+<thead>
+
+
+<tr>
+
+
+<th>
+Student ID
+</th>
+
+
+
+<th>
+Student Name
+</th>
+
+<th>
+Student Email
+</th>
+
+
+
+<th>
+Supervisor
+</th>
+
+
+
+<th>
+2nd Marker
+</th>
+
+
+
+</tr>
+
+
+</thead>
+
+
+
+
+
+
+
+<tbody>
+
+
+
+
+{% if students.empty %}
+
+
+
+
+
+<tr>
+
+
+<td colspan="4">
+
+
+No student record available.
+
+
+</td>
+
+
+</tr>
+
+
+
+
+
+
+{% else %}
+
+
+
+
+
+{% for index, student in students.iterrows() %}
+
+
+
+
+<tr>
+
+
+
+
+<td>
+
+{{ student["Student ID"] }}
+
+</td>
+
+
+
+
+
+<td>
+
+{{ student["Student Name"] }}
+
+</td>
+
+
+<td>
+
+{{ student["Student Email"] }}
+
+</td>
+
+
+
+
+
+<td>
+
+{{ student["Supervisor"] }}
+
+</td>
+
+
+
+
+
+<td>
+
+{{ student["2nd Marker"] }}
+
+</td>
+
+
+
+
+
+
+</tr>
+
+
+
+
+
+{% endfor %}
+
+
+
+
+
+
+{% endif %}
+
+
+
+
+
+</tbody>
+
+
+
+</table>
+
+
+
+
+
+</div>
+
+
+
+
+
+{% endblock %}

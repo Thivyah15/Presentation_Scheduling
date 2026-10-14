@@ -1,0 +1,221 @@
+{% extends "student_layout.html" %}
+
+
+{% block content %}
+
+
+<div class="page-header">
+
+    <h1>
+        My Presentation Schedule
+    </h1>
+
+    <p>
+        View your assigned presentation slot and approval status.
+    </p>
+
+</div>
+
+
+
+{% if presentations %}
+
+
+
+{% for row in presentations %}
+
+
+<div class="presentation-card">
+
+
+    <div class="presentation-header">
+
+
+        <i class="fa-solid fa-calendar-check"></i>
+
+
+        <h2>
+            Presentation Details
+        </h2>
+
+
+    </div>
+
+
+
+
+    <div class="presentation-details">
+
+
+
+        <div class="detail-item">
+
+            <label>
+                Day
+            </label>
+
+            <span>
+                {{ row["Day"] }}
+            </span>
+
+        </div>
+
+
+
+
+        <div class="detail-item">
+
+            <label>
+                Date
+            </label>
+
+            <span>
+                {{ row["Display Date"] }}
+            </span>
+
+        </div>
+
+
+
+
+
+        <div class="detail-item">
+
+            <label>
+                Presentation Time
+            </label>
+
+            <span>
+                {{ row["Presentation Slot"] }}
+            </span>
+
+        </div>
+
+
+
+
+
+        <div class="detail-item">
+
+            <label>
+                Supervisor
+            </label>
+
+            <span>
+                {{ row["Supervisor"] }}
+            </span>
+
+        </div>
+
+
+
+
+
+        <div class="detail-item">
+
+            <label>
+                2nd Marker
+            </label>
+
+            <span>
+                {{ row["2nd Marker"] }}
+            </span>
+
+        </div>
+
+
+
+
+
+        <div class="detail-item">
+
+
+            <label>
+                Status
+            </label>
+
+
+
+            {% if row["Status"] == "Scheduled" %}
+
+
+            <span class="status accepted">
+
+                <i class="fa-solid fa-check"></i>
+                Scheduled
+
+            </span>
+
+
+
+            {% elif row["Status"] == "Rejected" %}
+
+
+            <span class="status rejected">
+
+                <i class="fa-solid fa-xmark"></i>
+                Rejected
+
+            </span>
+
+
+
+
+            {% else %}
+
+
+            <span class="status pending">
+
+                <i class="fa-solid fa-clock"></i>
+                Pending Approval
+
+            </span>
+
+
+
+            {% endif %}
+
+
+        </div>
+
+
+
+    </div>
+
+
+
+</div>
+
+
+{% endfor %}
+
+
+
+{% else %}
+
+
+<div class="empty-card">
+
+
+    <i class="fa-solid fa-calendar-xmark"></i>
+
+
+    <h3>
+        No Presentation Schedule
+    </h3>
+
+
+    <p>
+        You have not selected any presentation slot yet.
+    </p>
+
+
+
+</div>
+
+
+{% endif %}
+
+
+
+{% endblock %}
