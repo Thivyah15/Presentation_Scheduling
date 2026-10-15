@@ -1331,9 +1331,9 @@ def staff_notifications():
 @app.context_processor
 def inject_staff_notifications():
 
-    notifications = []
+    staff_notifications = []
 
-    notification_count = 0
+    staff_notification_count = 0
 
 
     staff_name = session.get("staff_name")
@@ -1342,8 +1342,76 @@ def inject_staff_notifications():
     file = "data/notifications.xlsx"
 
 
-
     if staff_name and os.path.exists(file):
+
+        df = pd.read_excel(file)
+
+
+        df.columns = (
+            df.columns
+            .str.strip()
+        )
+
+
+        # Only logged-in lecturer
+
+        df = df[
+            df["Staff Name"] == staff_name
+        ]
+
+
+        # Keep Excel index for Mark as Read
+
+        df["Excel Index"] = df.index
+
+
+
+        staff_notifications = (
+            df
+            .sort_index(ascending=False)
+            .head(5)
+            .to_dict(
+                orient="records"
+            )
+        )
+
+
+
+        staff_notification_count = len(
+            df[
+                df["Status"]
+                .astype(str)
+                .str.strip()
+                ==
+                "Unread"
+            ]
+        )
+
+
+
+    return dict(
+
+        staff_notifications=staff_notifications,
+
+        staff_notification_count=staff_notification_count
+
+    )
+
+@app.context_processor
+def inject_student_notifications():
+
+    notifications = []
+
+    notification_count = 0
+
+
+    student_id = session.get("student_id")
+
+
+    file = "data/student_notifications.xlsx"
+
+
+    if student_id and os.path.exists(file):
 
 
         df = pd.read_excel(file)
@@ -1355,12 +1423,11 @@ def inject_staff_notifications():
         )
 
 
-        # Only logged-in lecturer notifications
+        # Only current logged-in student
 
         df = df[
-            df["Staff Name"] == staff_name
+            df["Student ID"] == student_id
         ]
-
 
 
         # Add Excel index for Mark as Read
@@ -1383,13 +1450,13 @@ def inject_staff_notifications():
 
 
 
-    return dict(
+    return {
 
-        staff_notifications=notifications,
+        "student_notifications": notifications,
 
-        staff_notification_count=notification_count
+        "student_notification_count": notification_count
 
-    )
+    }
 
 
 @app.route("/mark_notification_read/<int:index>")
@@ -1639,9 +1706,9 @@ def student_dashboard():
 
         presentation=presentation,
 
-        notifications=notifications,
+        student_notifications=notifications,
 
-        notification_count=notification_count
+        student_notification_count=notification_count
 
     )
 
