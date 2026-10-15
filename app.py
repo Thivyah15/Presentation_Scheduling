@@ -23,6 +23,9 @@ from flask import session
 from icalendar import Calendar, Event
 from datetime import datetime
 
+from notification import create_staff_notification
+from notification import create_student_notification
+
 app = Flask(__name__)
 
 app.secret_key = "apss_secret_key"
@@ -973,10 +976,12 @@ def student_requests():
 @app.route("/staff_approve_request/<int:index>", methods=["POST"])
 def staff_approve_request(index):
 
+
     file = "data/presentation_requests.xlsx"
 
 
     df = pd.read_excel(file)
+
 
     df.columns = df.columns.str.strip()
 
@@ -989,6 +994,7 @@ def staff_approve_request(index):
     ]:
 
         if col not in df.columns:
+
             df[col] = "Pending"
 
 
@@ -998,27 +1004,62 @@ def staff_approve_request(index):
 
 
     if not staff_name:
+
         return redirect("/staff_login")
 
 
 
-    # Supervisor decision
 
     if df.loc[index, "Supervisor"] == staff_name:
+
 
         df.loc[index, "Supervisor Status"] = "Accepted"
 
 
 
-    # 2nd Marker decision
-
     elif df.loc[index, "2nd Marker"] == staff_name:
+
 
         df.loc[index, "2nd Marker Status"] = "Accepted"
 
 
 
-    update_request_status(df, index)
+
+    # Update final status
+
+    update_request_status(
+        df,
+        index
+    )
+
+
+
+
+    student_id = df.loc[index, "Student ID"]
+
+    student_name = df.loc[index, "Student Name"]
+
+
+
+
+    # ===============================
+    # BOTH ACCEPTED
+    # CREATE STUDENT NOTIFICATION
+    # ===============================
+
+    if df.loc[index, "Status"] == "Scheduled":
+
+
+        create_student_notification(
+
+            student_id,
+
+            "Presentation Request Approved",
+
+            "Your presentation request has been approved. Please check My Presentation for your schedule."
+
+        )
+
 
 
 
@@ -1026,6 +1067,7 @@ def staff_approve_request(index):
         file,
         index=False
     )
+
 
 
     return redirect("/student_requests")
@@ -1039,16 +1081,19 @@ def staff_approve_request(index):
 # ============================
 # REJECT REQUEST
 # ============================
-
 @app.route("/staff_reject_request/<int:index>", methods=["POST"])
 def staff_reject_request(index):
+
 
     file = "data/presentation_requests.xlsx"
 
 
+
     df = pd.read_excel(file)
 
+
     df.columns = df.columns.str.strip()
+
 
 
 
@@ -1059,7 +1104,9 @@ def staff_reject_request(index):
     ]:
 
         if col not in df.columns:
+
             df[col] = "Pending"
+
 
 
 
@@ -1068,34 +1115,76 @@ def staff_reject_request(index):
 
 
     if not staff_name:
+
         return redirect("/staff_login")
 
 
 
-    # Supervisor decision
+
 
     if df.loc[index, "Supervisor"] == staff_name:
+
 
         df.loc[index, "Supervisor Status"] = "Rejected"
 
 
 
-    # 2nd Marker decision
-
     elif df.loc[index, "2nd Marker"] == staff_name:
+
 
         df.loc[index, "2nd Marker Status"] = "Rejected"
 
 
 
-    update_request_status(df, index)
+
+
+    update_request_status(
+        df,
+        index
+    )
+
+
+
+
+
+    student_id = df.loc[index, "Student ID"]
+
+    student_name = df.loc[index, "Student Name"]
+
+
+
+
+
+    # ===============================
+    # CREATE REJECTION NOTIFICATION
+    # ===============================
+
+
+    if df.loc[index, "Status"] == "Rejected":
+
+
+        create_student_notification(
+
+            student_id,
+
+            "Presentation Request Rejected",
+
+            "Your presentation request has been rejected. Please choose another available presentation slot."
+
+        )
+
+
 
 
 
     df.to_excel(
+
         file,
+
         index=False
+
     )
+
 
 
     return redirect("/student_requests")
@@ -1192,63 +1281,368 @@ def update_request_status(df, index):
         df.loc[index, "Status"] = "Pending"
 
 
-# ================= STUDENT PORTAL =================
-@app.route("/student")
-def student_dashboard():
-
-    import pandas as pd
-
-    student_id = session.get("student_id")
-
-    presentation = None
+@app.route("/staff_notifications")
+def staff_notifications():
 
 
-    if student_id:
-
-        file = "data/presentation_schedule.xlsx"
+    staff_name = session.get("staff_name")
 
 
-        try:
+    if not staff_name:
 
-            df = pd.read_excel(file)
-
-
-            student_data = df[
-                df["Student ID"] == student_id
-            ]
-
-
-            if not student_data.empty:
-
-
-                presentation = student_data.iloc[0].to_dict()
+        return redirect("/staff_login")
 
 
 
-                # Format Date to dd-mm-yyyy
-                if "Date" in presentation:
-
-
-                    date_value = pd.to_datetime(
-                        presentation["Date"]
-                    )
-
-
-                    presentation["Display Date"] = date_value.strftime(
-                        "%d-%m-%Y"
-                    )
+    file = "data/notifications.xlsx"
 
 
 
-        except Exception as e:
+    notifications = pd.DataFrame()
 
-            print("Dashboard Error:", e)
+
+
+    if os.path.exists(file):
+
+
+        df = pd.read_excel(file)
+
+
+
+        df.columns = (
+            df.columns
+            .str.strip()
+        )
+
+
+
+        notifications = df[
+            df["Staff Name"] == staff_name
+        ]
 
 
 
     return render_template(
+        "staff_notifications.html",
+        notifications=notifications
+    )
+
+
+@app.context_processor
+def inject_staff_notifications():
+
+    notifications = []
+
+    notification_count = 0
+
+
+    staff_name = session.get("staff_name")
+
+
+    file = "data/notifications.xlsx"
+
+
+
+    if staff_name and os.path.exists(file):
+
+
+        df = pd.read_excel(file)
+
+
+        df.columns = (
+            df.columns
+            .str.strip()
+        )
+
+
+        # Only logged-in lecturer notifications
+
+        df = df[
+            df["Staff Name"] == staff_name
+        ]
+
+
+
+        # Add Excel index for Mark as Read
+
+        df["Excel Index"] = df.index
+
+
+
+        notifications = df.to_dict(
+            orient="records"
+        )
+
+
+
+        notification_count = len(
+            df[
+                df["Status"] == "Unread"
+            ]
+        )
+
+
+
+    return dict(
+
+        staff_notifications=notifications,
+
+        staff_notification_count=notification_count
+
+    )
+
+
+@app.route("/mark_notification_read/<int:index>")
+def mark_notification_read(index):
+
+    file = "data/student_notifications.xlsx"
+
+
+    if os.path.exists(file):
+
+        df = pd.read_excel(file)
+
+
+        df.columns = (
+            df.columns
+            .str.strip()
+        )
+
+
+        df.loc[index, "Status"] = "Read"
+
+
+        df.to_excel(
+            file,
+            index=False
+        )
+
+
+    return redirect("/student")
+
+
+@app.route("/mark_staff_notification_read/<int:index>")
+def mark_staff_notification_read(index):
+
+
+    file = "data/notifications.xlsx"
+
+
+
+    if os.path.exists(file):
+
+
+        df = pd.read_excel(file)
+
+
+
+        df.columns = (
+            df.columns
+            .str.strip()
+        )
+
+
+
+        df.loc[index, "Status"] = "Read"
+
+
+
+        df.to_excel(
+            file,
+            index=False
+        )
+
+
+
+    return redirect("/staff_notifications")
+
+
+# ================= STUDENT PORTAL =================
+@app.route("/student")
+def student_dashboard():
+
+
+    student_id = session.get("student_id")
+
+
+    if not student_id:
+
+        return redirect("/student_login")
+
+
+
+    presentation = None
+
+
+
+    # =================================
+    # GET STUDENT PRESENTATION
+    # =================================
+
+    schedule_file = "data/presentation_schedule.xlsx"
+
+
+
+    if os.path.exists(schedule_file):
+
+
+        schedule = pd.read_excel(
+            schedule_file
+        )
+
+
+        schedule.columns = (
+            schedule.columns
+            .str.strip()
+        )
+
+
+
+        schedule["Student ID"] = (
+            schedule["Student ID"]
+            .astype(str)
+            .str.strip()
+        )
+
+
+
+        student_schedule = schedule[
+            schedule["Student ID"] 
+            == 
+            str(student_id).strip()
+        ]
+
+
+
+        if not student_schedule.empty:
+
+
+            presentation = (
+                student_schedule
+                .iloc[0]
+                .to_dict()
+            )
+
+
+
+            if "Date" in presentation:
+
+
+                presentation["Display Date"] = (
+                    pd.to_datetime(
+                        presentation["Date"],
+                        dayfirst=True,
+                        errors="coerce"
+                    )
+                    .strftime("%d-%m-%Y")
+                )
+
+
+
+
+
+
+
+
+    # =================================
+    # GET STUDENT NOTIFICATIONS
+    # =================================
+
+
+    notifications = []
+
+    notification_count = 0
+
+
+
+    notification_file = (
+        "data/student_notifications.xlsx"
+    )
+
+
+
+    if os.path.exists(notification_file):
+
+
+        notification_df = pd.read_excel(
+            notification_file
+        )
+
+
+
+        notification_df.columns = (
+            notification_df.columns
+            .str.strip()
+        )
+
+
+
+        notification_df["Student ID"] = (
+            notification_df["Student ID"]
+            .astype(str)
+            .str.strip()
+        )
+
+
+
+        # keep original Excel row number
+
+        notification_df["Excel Index"] = (
+            notification_df.index
+        )
+
+
+
+        student_notifications = notification_df[
+            notification_df["Student ID"]
+            ==
+            str(student_id).strip()
+        ]
+
+
+
+
+
+        notifications = (
+            student_notifications
+            .sort_index(
+                ascending=False
+            )
+            .head(5)
+            .to_dict(
+                orient="records"
+            )
+        )
+
+
+
+
+        notification_count = len(
+
+            student_notifications[
+                student_notifications["Status"]
+                .astype(str)
+                .str.strip()
+                ==
+                "Unread"
+            ]
+
+        )
+
+
+
+
+
+    return render_template(
+
         "student_dashboard.html",
-        presentation=presentation
+
+        presentation=presentation,
+
+        notifications=notifications,
+
+        notification_count=notification_count
+
     )
 
 
@@ -1466,9 +1860,13 @@ def request_slot():
 
 
 
-    # Read student information
+    # ============================
+    # GET STUDENT INFORMATION
+    # ============================
 
-    students = pd.read_excel(student_file)
+    students = pd.read_excel(
+        student_file
+    )
 
 
     students.columns = (
@@ -1495,7 +1893,10 @@ def request_slot():
 
 
 
-    # Check existing request
+
+    # ============================
+    # CHECK EXISTING REQUEST
+    # ============================
 
     if os.path.exists(request_file):
 
@@ -1513,11 +1914,18 @@ def request_slot():
 
 
         existing = requests[
+
             (requests["Student ID"] == student_id)
+
             &
+
             (requests["Status"].isin(
-                ["Pending", "Accepted"]
+                [
+                    "Pending",
+                    "Scheduled"
+                ]
             ))
+
         ]
 
 
@@ -1525,7 +1933,9 @@ def request_slot():
         if not existing.empty:
 
 
-            return redirect("/request_status")
+            return redirect(
+                "/request_status"
+            )
 
 
 
@@ -1537,40 +1947,82 @@ def request_slot():
 
 
 
-    # Create new request
+
+    # ============================
+    # GET SELECTED SLOT DETAILS
+    # ============================
+
+    supervisor = request.form["supervisor"]
+
+    marker = request.form["marker"]
+
+
+
+
+
+    # ============================
+    # CREATE REQUEST
+    # ============================
 
     new_request = {
 
 
         "Student ID":
+
         student_info["Student ID"],
 
 
+
         "Student Name":
+
         student_info["Student Name"],
 
 
+
         "Supervisor":
-        request.form["supervisor"],
+
+        supervisor,
+
 
 
         "2nd Marker":
-        request.form["marker"],
+
+        marker,
+
 
 
         "Day":
+
         request.form["day"],
 
 
+
         "Date":
+
         request.form["date"],
 
 
+
         "Presentation Slot":
+
         request.form["slot"],
 
 
+
         "Status":
+
+        "Pending",
+
+
+
+        "Supervisor Status":
+
+        "Pending",
+
+
+
+        "2nd Marker Status":
+
         "Pending"
 
     }
@@ -1580,25 +2032,73 @@ def request_slot():
 
 
     requests = pd.concat(
+
         [
+
             requests,
-            pd.DataFrame([new_request])
+
+            pd.DataFrame(
+                [new_request]
+            )
+
         ],
+
         ignore_index=True
+
     )
 
 
 
 
     requests.to_excel(
+
         request_file,
+
         index=False
+
+    )
+
+
+    # ============================
+    # CREATE STAFF NOTIFICATIONS
+    # ============================
+
+
+    create_staff_notification(
+
+        supervisor,
+
+        student_info["Student ID"],
+
+        student_info["Student Name"]
+
+    )
+
+
+
+    create_staff_notification(
+
+        marker,
+
+        student_info["Student ID"],
+
+        student_info["Student Name"]
+
     )
 
 
 
 
-    return redirect("/request_status")
+
+    print(
+        "Request submitted and notifications created"
+    )
+
+
+
+    return redirect(
+        "/request_status"
+    )
 
 
 @app.route("/request_status")

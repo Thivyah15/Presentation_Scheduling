@@ -10,116 +10,517 @@
 
     <title>Student Portal</title>
 
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
+
 
     <link rel="preconnect"
           href="https://fonts.gstatic.com"
           crossorigin>
 
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
           rel="stylesheet">
+
 
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
+
     <link rel="stylesheet"
           href="{{ url_for('static', filename='css/style.css') }}">
 
+
 </head>
+
 
 <body>
 
+
 <div class="sidebar">
+
 
     <div class="logo">
 
-        <h2>Student Portal</h2>
+
+        <h2>
+            Student Portal
+        </h2>
+
 
     </div>
 
-<ul>
 
-    <li>
 
-        <a href="/student">
 
-            <i class="fa-solid fa-house"></i>
+    <ul>
 
-            Dashboard
 
-        </a>
+        <li>
 
-    </li>
+            <a href="/student">
 
-    <li>
+                <i class="fa-solid fa-house"></i>
 
-        <a href="/available_slots">
+                Dashboard
 
-            <i class="fa-solid fa-calendar-days"></i>
+            </a>
 
-            Available Slots
+        </li>
 
-        </a>
 
-    </li>
 
-    <li>
+        <li>
 
-        <a href="/request_status">
+            <a href="/available_slots">
 
-            <i class="fa-solid fa-clock"></i>
+                <i class="fa-solid fa-calendar-days"></i>
 
-            Request Status
+                Available Slots
 
-        </a>
+            </a>
 
-    </li>
+        </li>
 
-    <li>
 
-        <a href="/my_presentation">
 
-            <i class="fa-solid fa-calendar-check"></i>
+        <li>
 
-            My Presentation
+            <a href="/request_status">
 
-        </a>
+                <i class="fa-solid fa-clock"></i>
 
-    </li>
+                Request Status
 
-    <li>
+            </a>
 
-        <a href="/">
+        </li>
 
-            <i class="fa-solid fa-arrow-left"></i>
 
-            Back to Role Selection
 
-        </a>
+        <li>
 
-    </li>
+            <a href="/my_presentation">
 
-</ul>
+                <i class="fa-solid fa-calendar-check"></i>
+
+                My Presentation
+
+            </a>
+
+        </li>
+
+
+
+        <li>
+
+            <a href="/">
+
+                <i class="fa-solid fa-arrow-left"></i>
+
+                Back to Role Selection
+
+            </a>
+
+        </li>
+
+
+    </ul>
+
 
 </div>
+
+
+
+
+
+
 
 <div class="main">
 
+
+
+
+
+    <!-- ================= TOPBAR ================= -->
+
+
     <div class="topbar">
 
-        <h2>Student Dashboard</h2>
+
+
+
+
+        <div>
+
+
+            <h2>
+                Student Dashboard
+            </h2>
+
+
+            <p>
+                Automated Presentation Scheduling System
+            </p>
+
+
+        </div>
+
+
+
+
+
+
+
+        <div class="topbar-right">
+
+
+
+
+
+
+
+            <!-- ================= NOTIFICATION ================= -->
+
+
+            <div class="notification-box">
+
+
+
+                <button class="notification-icon"
+                        onclick="toggleNotification()">
+
+
+
+                    <i class="fa-solid fa-bell"></i>
+
+
+
+
+
+                    {% if student_notification_count > 0 %}
+
+
+
+                    <span class="notification-count">
+
+                        {{ student_notification_count }}
+
+                    </span>
+
+
+
+                    {% endif %}
+
+
+
+
+
+                </button>
+
+
+
+
+
+
+
+
+                <div class="notification-dropdown"
+                     id="notificationDropdown">
+
+
+
+
+
+                    {% if student_notifications %}
+
+
+
+
+
+
+                        {% for notification in student_notifications %}
+
+
+
+
+
+                        <div class="notification-item">
+
+
+
+
+
+                            <h4>
+
+                                {{ notification["Title"] }}
+
+                            </h4>
+
+
+
+
+
+                            <p>
+
+                                {{ notification["Message"] }}
+
+                            </p>
+
+
+
+
+
+                            <small>
+
+                                {{ notification["Date"] }}
+
+                            </small>
+
+
+
+
+
+                            {% if notification["Status"] == "Unread" %}
+
+
+
+
+
+                            <br>
+
+
+
+                            <a href="/mark_notification_read/{{ notification['Excel Index'] }}"
+                               class="mark-read-btn">
+
+
+                                Mark as Read
+
+
+                            </a>
+
+
+
+
+
+                            {% else %}
+
+
+
+
+
+                            <span class="read-label">
+
+
+                                ✓ Read
+
+
+                            </span>
+
+
+
+
+
+                            {% endif %}
+
+
+
+
+
+                        </div>
+
+
+
+
+
+
+
+                        {% endfor %}
+
+
+
+
+
+                    {% else %}
+
+
+
+
+
+
+                    <div class="no-notification">
+
+
+                        No notification available
+
+
+                    </div>
+
+
+
+
+
+
+                    {% endif %}
+
+
+
+
+
+                </div>
+
+
+
+
+
+
+            </div>
+
+
+
+
+
+
+
+
+
+            <!-- ================= PROFILE ================= -->
+
+
+
+            <div class="student-profile">
+
+
+
+
+
+                <div class="profile-icon">
+
+
+                    <i class="fa-solid fa-user-graduate"></i>
+
+
+                </div>
+
+
+
+
+
+
+                <div class="profile-info">
+
+
+
+                    <h4>
+
+                        {{ session.get("student_name","Student") }}
+
+                    </h4>
+
+
+
+
+
+                    <p>
+
+                        Student
+
+                    </p>
+
+
+
+                </div>
+
+
+
+
+
+            </div>
+
+
+
+
+
+
+
+        </div>
+
+
+
+
+
+
 
     </div>
+
+
+
+
+
+
+
+
+
+    <!-- ================= PAGE CONTENT ================= -->
+
+
 
     <div class="content">
 
+
         {% block content %}
+
 
         {% endblock %}
 
+
+
     </div>
 
+
+
+
+
 </div>
+
+
+
+
+
+
+
+
+
+<script>
+
+
+function toggleNotification(){
+
+
+    let notification = document.getElementById(
+        "notificationDropdown"
+    );
+
+
+
+    notification.classList.toggle(
+        "show"
+    );
+
+
+}
+
+
+
+</script>
+
+
+
+
+
+
+
 
 </body>
 

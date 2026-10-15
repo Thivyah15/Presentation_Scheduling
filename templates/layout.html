@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
     <meta charset="UTF-8">
@@ -7,170 +8,553 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
+
     <title>
         Automated Presentation Scheduling System
     </title>
 
+
     <link rel="preconnect"
           href="https://fonts.googleapis.com">
+
 
     <link rel="preconnect"
           href="https://fonts.gstatic.com"
           crossorigin>
 
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
           rel="stylesheet">
+
 
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
+
     <link rel="stylesheet"
           href="{{ url_for('static', filename='css/style.css') }}">
 
+
 </head>
+
+
 
 <body>
 
+
+
 <div class="sidebar">
 
-    
+
 
     <div class="logo">
 
-        <h2>APSS</h2>
+
+        <h2>
+            APSS
+        </h2>
+
 
         <p>
             Presentation Scheduling System
         </p>
 
+
     </div>
+
+
+
 
 
     <ul>
 
-    <li>
-        <a href="/index">
-            <i class="fa-solid fa-house"></i>
-            Dashboard
-        </a>
-    </li>
 
-    <li>
-        <a href="/timetable">
-            <i class="fa-solid fa-file-import"></i>
-            Retrieve Timetable
-        </a>
-    </li>
+        <li>
 
-    <li>
-        <a href="/common_availability">
-            <i class="fa-solid fa-calendar-days"></i>
-            Generate Common Availability
-        </a>
-    </li>
+            <a href="/index">
 
-    <li>
-        <a href="/students">
-            <i class="fa-solid fa-user-graduate"></i>
-            Student Management
-        </a>
-    </li>
+                <i class="fa-solid fa-house"></i>
 
-    <li>
-        <a href="/student_requests">
-            <i class="fa-solid fa-file-circle-check"></i>
-            Student Requests
-        </a>
-    </li>
+                Dashboard
 
-    <li>
-        <a href="/presentation_schedule">
-            <i class="fa-solid fa-calendar-check"></i>
-            Presentation Schedule
-        </a>
-    </li>
+            </a>
 
-    <li>
-        <a href="/conflict_report">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            Conflict Report
-        </a>
-    </li>
+        </li>
 
-    <li>
 
-    <a href="/">
 
-        <i class="fa-solid fa-arrow-left"></i>
 
-        Back to Role Selection
+        <li>
 
-    </a>
+            <a href="/timetable">
 
-</li>
+                <i class="fa-solid fa-file-import"></i>
 
-</ul>
+                Retrieve Timetable
+
+            </a>
+
+        </li>
+
+
+
+
+        <li>
+
+            <a href="/common_availability">
+
+                <i class="fa-solid fa-calendar-days"></i>
+
+                Generate Common Availability
+
+            </a>
+
+        </li>
+
+
+
+
+        <li>
+
+            <a href="/students">
+
+                <i class="fa-solid fa-user-graduate"></i>
+
+                Student Management
+
+            </a>
+
+        </li>
+
+
+
+
+        <li>
+
+            <a href="/student_requests">
+
+                <i class="fa-solid fa-file-circle-check"></i>
+
+                Student Requests
+
+            </a>
+
+        </li>
+
+
+
+
+        <li>
+
+            <a href="/presentation_schedule">
+
+                <i class="fa-solid fa-calendar-check"></i>
+
+                Presentation Schedule
+
+            </a>
+
+        </li>
+
+
+
+
+        <li>
+
+            <a href="/conflict_report">
+
+                <i class="fa-solid fa-triangle-exclamation"></i>
+
+                Conflict Report
+
+            </a>
+
+        </li>
+
+
+
+
+        <li>
+
+            <a href="/">
+
+                <i class="fa-solid fa-arrow-left"></i>
+
+                Back to Role Selection
+
+            </a>
+
+        </li>
+
+
+    </ul>
+
 
 </div>
+
+
+
+
 
 
 
 <div class="main">
 
-    <div class="topbar">
+
+
+
+
+<div class="topbar">
+
+
 
     <div>
+
+
         <h2>
             Dashboard
         </h2>
 
+
         <p>
             Automated Presentation Scheduling System
         </p>
+
+
     </div>
 
 
 
-    <!-- Lecturer Profile -->
 
-    <div class="lecturer-profile">
 
-        <div class="profile-icon">
 
-            <i class="fa-solid fa-user"></i>
+
+
+    <div class="topbar-right">
+
+
+
+
+
+
+
+        <!-- ================= NOTIFICATION ================= -->
+
+
+        <div class="notification-box">
+
+
+
+            <button class="notification-icon"
+                    type="button"
+                    onclick="toggleNotification()">
+
+
+
+                <i class="fa-solid fa-bell"></i>
+
+
+
+
+                {% if staff_notification_count > 0 %}
+
+
+                <span class="notification-count">
+
+                    {{ staff_notification_count }}
+
+                </span>
+
+
+
+                {% endif %}
+
+
+
+            </button>
+
+
+
+
+
+
+
+
+            <div class="notification-dropdown"
+                 id="notificationDropdown">
+
+
+
+
+
+                {% if staff_notifications %}
+
+
+
+
+
+                    {% for notification in staff_notifications %}
+
+
+
+
+
+                    <div class="notification-item">
+
+
+
+
+
+                        <h4>
+
+                            {{ notification["Title"] }}
+
+                        </h4>
+
+
+
+
+
+                        <p>
+
+                            {{ notification["Message"] }}
+
+                        </p>
+
+
+
+
+
+                        <small>
+
+                            {{ notification["Date"] }}
+
+                        </small>
+
+
+
+
+
+
+                        {% if notification["Status"] == "Unread" %}
+
+
+
+                        <br>
+
+
+
+                        <a href="/mark_staff_notification_read/{{ notification['Excel Index'] }}"
+                           class="mark-read-btn">
+
+
+                            Mark as Read
+
+
+                        </a>
+
+
+
+
+
+                        {% else %}
+
+
+
+
+
+                        <span class="read-label">
+
+                            ✓ Read
+
+                        </span>
+
+
+
+
+
+                        {% endif %}
+
+
+
+
+
+                    </div>
+
+
+
+
+
+
+
+                    {% endfor %}
+
+
+
+
+
+                {% else %}
+
+
+
+
+
+                <div class="no-notification">
+
+
+                    No new notifications
+
+
+                </div>
+
+
+
+
+
+                {% endif %}
+
+
+
+
+
+            </div>
+
+
+
+
 
         </div>
 
 
-        <div class="profile-info">
 
-            <h4>
-                {{ session["staff_name"] }}
-            </h4>
 
-            <p>
-                Lecturer
-            </p>
+
+
+
+
+
+        <!-- ================= PROFILE ================= -->
+
+
+
+        <div class="lecturer-profile">
+
+
+
+            <div class="profile-icon">
+
+
+                <i class="fa-solid fa-user"></i>
+
+
+            </div>
+
+
+
+
+
+            <div class="profile-info">
+
+
+
+                <h4>
+
+                    {{ session["staff_name"] }}
+
+                </h4>
+
+
+
+
+                <p>
+
+                    Lecturer
+
+                </p>
+
+
+
+            </div>
+
+
 
         </div>
+
+
+
+
 
     </div>
+
+
+
+
 
 
 </div>
 
 
 
-    <div class="content">
 
-        {% block content %}
 
-        {% endblock %}
 
-    </div>
+
+
+
+<div class="content">
+
+
+    {% block content %}
+
+
+    {% endblock %}
+
 
 </div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<script>
+
+
+function toggleNotification(){
+
+
+    let dropdown = document.getElementById(
+        "notificationDropdown"
+    );
+
+
+    dropdown.classList.toggle(
+        "show"
+    );
+
+
+}
+
+
+
+</script>
+
+
+
+
+
 
 </body>
+
 
 </html>
