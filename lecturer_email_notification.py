@@ -1,5 +1,8 @@
 import mysql.connector
+
 from outlook_email import send_outlook_email
+
+from config import APSS_URL
 
 
 
@@ -35,6 +38,7 @@ def get_lecturer_email(lecturer_name):
     conn.close()
 
 
+
     if lecturer:
 
         return lecturer["email"]
@@ -52,12 +56,12 @@ def get_lecturer_email(lecturer_name):
 
 
 
+
 def send_lecturer_request_email(
     lecturer_name,
     student_id,
     student_name,
-    presentation_date,
-    presentation_slot,
+    selected_slots
 ):
 
 
@@ -76,19 +80,39 @@ def send_lecturer_request_email(
 
 
 
+    system_link = (
+        f"{APSS_URL}/staff_login"
+    )
+
+
+
     message = f"""
 Dear Lecturer,
 
 A new presentation slot request has been submitted and requires your review.
 
+
 Presentation Request Details
 
 Student ID: {student_id}
+
 Student Name: {student_name}
-Presentation Date: {presentation_date}
-Presentation Time: {presentation_slot}
+
+
+
+Preferred Presentation Slots:
+
+{selected_slots}
+
+
 
 Please login to the Automated Presentation Scheduling System (APSS) to review and approve or reject this request.
+
+
+System Link:
+{system_link}
+
+
 
 Thank you.
 

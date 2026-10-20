@@ -10,7 +10,8 @@ from datetime import datetime
 def create_staff_notification(
     staff_name,
     student_id,
-    student_name
+    student_name,
+    slot_count
 ):
 
     file = "data/notifications.xlsx"
@@ -24,24 +25,33 @@ def create_staff_notification(
 
         "Student Name": student_name,
 
-        "Title": "New Presentation Request",
+        "Title": "New Presentation Slot Request",
 
-        "Message": "A new presentation request has been submitted.",
+        "Message": (
+            f"{student_name} ({student_id}) "
+            f"has submitted {slot_count} preferred "
+            f"presentation slots."
+        ),
 
         "Status": "Unread",
 
-        "Date": datetime.now().strftime("%d-%m-%Y %H:%M")
+        "Date": datetime.now().strftime(
+            "%d-%m-%Y %H:%M"
+        )
 
     }
+
 
 
     if os.path.exists(file):
 
         df = pd.read_excel(file)
 
+
     else:
 
         df = pd.DataFrame(columns=[
+
             "Staff Name",
             "Student ID",
             "Student Name",
@@ -49,18 +59,30 @@ def create_staff_notification(
             "Message",
             "Status",
             "Date"
+
         ])
 
 
+
     df = pd.concat(
-        [df, pd.DataFrame([notification])],
+
+        [
+            df,
+            pd.DataFrame([notification])
+        ],
+
         ignore_index=True
+
     )
 
 
+
     df.to_excel(
+
         file,
+
         index=False
+
     )
 
 

@@ -975,7 +975,6 @@ def student_requests():
 # ============================
 # APPROVE REQUEST
 # ============================
-
 @app.route("/staff_approve_request/<int:index>", methods=["POST"])
 def staff_approve_request(index):
 
@@ -983,22 +982,34 @@ def staff_approve_request(index):
     file = "data/presentation_requests.xlsx"
 
 
-    df = pd.read_excel(file)
+
+    df = pd.read_excel(
+        file
+    )
 
 
-    df.columns = df.columns.str.strip()
+    df.columns = (
+        df.columns
+        .str.strip()
+    )
 
 
+
+    # Ensure columns exist
 
     for col in [
+
         "Supervisor Status",
         "2nd Marker Status",
         "Status"
+
     ]:
+
 
         if col not in df.columns:
 
             df[col] = "Pending"
+
 
 
 
@@ -1008,22 +1019,28 @@ def staff_approve_request(index):
 
     if not staff_name:
 
-        return redirect("/staff_login")
+        return redirect(
+            "/staff_login"
+        )
 
 
 
 
-    if df.loc[index, "Supervisor"] == staff_name:
+    # ============================
+    # UPDATE STAFF DECISION
+    # ============================
+
+    if df.loc[index,"Supervisor"] == staff_name:
 
 
-        df.loc[index, "Supervisor Status"] = "Accepted"
+        df.loc[index,"Supervisor Status"] = "Accepted"
 
 
 
-    elif df.loc[index, "2nd Marker"] == staff_name:
+    elif df.loc[index,"2nd Marker"] == staff_name:
 
 
-        df.loc[index, "2nd Marker Status"] = "Accepted"
+        df.loc[index,"2nd Marker Status"] = "Accepted"
 
 
 
@@ -1037,50 +1054,53 @@ def staff_approve_request(index):
 
 
 
-
-    student_id = df.loc[index, "Student ID"]
-
-    student_name = df.loc[index, "Student Name"]
+    student_id = df.loc[index,"Student ID"]
 
 
 
+    # ============================
+    # STUDENT NOTIFICATION
+    # ONLY WHEN SCHEDULED
+    # ============================
 
-    # ===============================
-    # BOTH ACCEPTED
-    # CREATE STUDENT NOTIFICATION
-    # ===============================
-
-    if df.loc[index, "Status"] == "Scheduled":
+    if df.loc[index,"Status"] == "Scheduled":
 
 
         create_student_notification(
 
             student_id,
 
-            "Presentation Request Approved",
+            "Presentation Scheduled",
 
-            "Your presentation request has been approved. Please check My Presentation for your schedule."
+            "Your presentation slot has been approved. Please check My Presentation."
 
         )
 
-        # Send Outlook email
+
 
         send_student_status_email(
-            student_id,
-            "Approved"
-        )
 
+            student_id,
+
+            "Approved"
+
+        )
 
 
 
     df.to_excel(
+
         file,
+
         index=False
+
     )
 
 
 
-    return redirect("/student_requests")
+    return redirect(
+        "/student_requests"
+    )
 
 
 
@@ -1213,136 +1233,174 @@ def staff_reject_request(index):
 # ============================
 # UPDATE FINAL STATUS
 # ============================
-
 def update_request_status(df, index):
 
-
-    supervisor = df.loc[
-        index,
-        "Supervisor Status"
-    ]
-
-
-    marker = df.loc[
-        index,
-        "2nd Marker Status"
-    ]
-
-
-
-    # Both accepted
-
-    if supervisor == "Accepted" and marker == "Accepted":
-
-        df.loc[index, "Status"] = "Scheduled"
-
-
-
-    # Any rejection
-
-    elif supervisor == "Rejected" or marker == "Rejected":
-
-        df.loc[index, "Status"] = "Rejected"
-
-
-
-    else:
-
-        df.loc[index, "Status"] = "Pending"
-
-
-def update_request_status(df, index):
 
     supervisor = df.loc[index, "Supervisor Status"]
+
     marker = df.loc[index, "2nd Marker Status"]
+
+
+
+    # ============================
+    # BOTH ACCEPTED
+    # ============================
 
     if supervisor == "Accepted" and marker == "Accepted":
 
+
         df.loc[index, "Status"] = "Scheduled"
 
-        # Save into presentation_schedule.xlsx
-        schedule_file = "data/presentation_schedule.xlsx"
-
-        schedule_row = df.loc[[index]].copy()
-
-        if os.path.exists(schedule_file):
-
-            schedule = pd.read_excel(schedule_file)
-
-            schedule.columns = schedule.columns.str.strip()
-
-            # Prevent duplicate schedule
-            duplicate = (
-                (schedule["Student ID"].astype(str) == str(schedule_row.iloc[0]["Student ID"]))
-                &
-                (schedule["Date"].astype(str) == str(schedule_row.iloc[0]["Date"]))
-                &
-                (schedule["Presentation Slot"].astype(str) == str(schedule_row.iloc[0]["Presentation Slot"]))
-            )
-
-            if not duplicate.any():
-                schedule = pd.concat([schedule, schedule_row], ignore_index=True)
-
-        else:
-
-            schedule = schedule_row
-
-        schedule.to_excel(schedule_file, index=False)
-
-    elif supervisor == "Rejected" or marker == "Rejected":
-
-        df.loc[index, "Status"] = "Rejected"
-
-    else:
-
-        df.loc[index, "Status"] = "Pending"
 
 
-@app.route("/staff_notifications")
-def staff_notifications():
+        # Reject student's other selected slots
 
+        reject_other_student_slots(
 
-    staff_name = session.get("staff_name")
+            df,
 
+            index
 
-    if not staff_name:
-
-        return redirect("/staff_login")
-
-
-
-    file = "data/notifications.xlsx"
-
-
-
-    notifications = pd.DataFrame()
-
-
-
-    if os.path.exists(file):
-
-
-        df = pd.read_excel(file)
-
-
-
-        df.columns = (
-            df.columns
-            .str.strip()
         )
 
 
 
-        notifications = df[
-            df["Staff Name"] == staff_name
-        ]
+
+        # ============================
+        # SAVE TO PRESENTATION SCHEDULE
+        # ============================
+
+        schedule_file = "data/presentation_schedule.xlsx"
 
 
 
-    return render_template(
-        "staff_notifications.html",
-        notifications=notifications
-    )
+        schedule_row = df.loc[[index]].copy()
+
+
+
+        if os.path.exists(schedule_file):
+
+
+            schedule = pd.read_excel(
+                schedule_file
+            )
+
+
+            schedule.columns = (
+                schedule.columns
+                .str.strip()
+            )
+
+
+
+            duplicate = (
+
+                (schedule["Student ID"].astype(str)
+                ==
+                str(schedule_row.iloc[0]["Student ID"]))
+
+                &
+
+                (schedule["Date"].astype(str)
+                ==
+                str(schedule_row.iloc[0]["Date"]))
+
+                &
+
+                (schedule["Presentation Slot"].astype(str)
+                ==
+                str(schedule_row.iloc[0]["Presentation Slot"]))
+
+            )
+
+
+
+            if not duplicate.any():
+
+
+                schedule = pd.concat(
+
+                    [
+                        schedule,
+                        schedule_row
+                    ],
+
+                    ignore_index=True
+
+                )
+
+
+
+        else:
+
+
+            schedule = schedule_row
+
+
+
+
+        schedule.to_excel(
+
+            schedule_file,
+
+            index=False
+
+        )
+
+
+
+
+    # ============================
+    # ANY REJECT
+    # ============================
+
+    elif supervisor == "Rejected" or marker == "Rejected":
+
+
+        df.loc[index, "Status"] = "Rejected"
+
+
+
+    else:
+
+
+        df.loc[index, "Status"] = "Pending"
+
+
+
+def reject_other_student_slots(df, index):
+
+
+    student_id = df.loc[index, "Student ID"]
+
+
+    selected_date = df.loc[index, "Date"]
+
+    selected_slot = df.loc[index, "Presentation Slot"]
+
+
+
+    for i, row in df.iterrows():
+
+
+        # Same student, but different slot
+
+        if (
+
+            str(row["Student ID"]) == str(student_id)
+
+            and i != index
+
+            and row["Status"] == "Pending"
+
+        ):
+
+
+            df.loc[i, "Status"] = "Rejected"
+
+            df.loc[i, "Supervisor Status"] = "Rejected"
+
+            df.loc[i, "2nd Marker Status"] = "Rejected"
 
 
 @app.context_processor
@@ -1787,146 +1845,249 @@ def available_slots():
 
     student_id = session.get("student_id")
 
+    if not student_id:
 
-    if student_id:
-
-        student_file = "data/student.xlsx"
-        availability_file = "data/common_availability.xlsx"
-        request_file = "data/presentation_requests.xlsx"
-        schedule_file = "data/presentation_schedule.xlsx"
+        return redirect("/student")
 
 
+    student_file = "data/student.xlsx"
+    availability_file = "data/common_availability.xlsx"
+    request_file = "data/presentation_requests.xlsx"
+    schedule_file = "data/presentation_schedule.xlsx"
 
-        if os.path.exists(student_file) and os.path.exists(availability_file):
 
 
-            students = pd.read_excel(student_file)
+    # ============================
+    # GET STUDENT INFORMATION
+    # ============================
 
-            students.columns = (
-                students.columns
+    if os.path.exists(student_file) and os.path.exists(availability_file):
+
+
+        students = pd.read_excel(student_file)
+
+
+        students.columns = (
+            students.columns
+            .str.strip()
+        )
+
+
+        student = students[
+            students["Student ID"]
+            .astype(str)
+            .str.strip()
+            ==
+            str(student_id).strip()
+        ]
+
+
+
+        if not student.empty:
+
+
+            supervisor = student.iloc[0]["Supervisor"]
+
+            marker = student.iloc[0]["2nd Marker"]
+
+
+
+            # ============================
+            # LOAD AVAILABLE SLOTS
+            # ============================
+
+            availability = pd.read_excel(
+                availability_file
+            )
+
+
+            availability.columns = (
+                availability.columns
                 .str.strip()
             )
 
 
-            student = students[
-                students["Student ID"]
-                .astype(str)
-                .str.strip()
-                ==
-                str(student_id).strip()
-            ]
+
+            slots = availability[
+
+                (availability["Supervisor Name"] == supervisor)
+
+                &
+
+                (availability["2nd Marker Name"] == marker)
+
+            ].copy()
 
 
 
-            if not student.empty:
+            # ============================
+            # CHECK STUDENT REQUEST COUNT
+            # ============================
+
+            student_requests = 0
 
 
-                supervisor = student.iloc[0]["Supervisor"]
-                marker = student.iloc[0]["2nd Marker"]
+
+            if os.path.exists(request_file):
 
 
-
-                # Read availability
-
-                availability = pd.read_excel(
-                    availability_file
+                requests = pd.read_excel(
+                    request_file
                 )
 
 
-                availability.columns = (
-                    availability.columns
+                requests.columns = (
+                    requests.columns
                     .str.strip()
                 )
 
 
 
-                slots = availability[
-                    (availability["Supervisor Name"] == supervisor)
+                # Count student's active requests
+
+                student_active = requests[
+
+                    (requests["Student ID"].astype(str).str.strip()
+                    ==
+                    str(student_id).strip())
+
                     &
-                    (availability["2nd Marker Name"] == marker)
+
+                    (
+                        requests["Status"].isin(
+                            [
+                                "Pending",
+                                "Scheduled"
+                            ]
+                        )
+                    )
+
                 ]
 
 
 
-                # Remove requested slots
-
-                if os.path.exists(request_file):
-
-                    requests = pd.read_excel(
-                        request_file
-                    )
+                student_requests = len(student_active)
 
 
-                    requests.columns = (
-                        requests.columns
-                        .str.strip()
-                    )
 
+                # Student already selected 3 slots
+
+                if student_requests >= 3:
+
+                    slots = pd.DataFrame()
+
+
+
+                else:
+
+
+                    # ============================
+                    # REMOVE USED REQUEST SLOTS
+                    # ============================
 
                     used_requests = requests[
+
                         requests["Status"].isin(
                             [
                                 "Pending",
-                                "Accepted"
+                                "Scheduled"
                             ]
                         )
+
                     ]
 
 
 
                     for _, row in used_requests.iterrows():
 
+
                         slots = slots[
+
                             ~(
+
                                 (slots["Day"] == row["Day"])
+
                                 &
-                                (slots["Date"].astype(str) == str(row["Date"]))
+
+                                (
+                                    slots["Date"].astype(str)
+                                    ==
+                                    str(row["Date"])
+                                )
+
                                 &
-                                (slots["Presentation Slot"] == row["Presentation Slot"])
+
+                                (
+                                    slots["Presentation Slot"]
+                                    ==
+                                    row["Presentation Slot"]
+                                )
+
                             )
+
                         ]
 
 
 
-                # Remove assigned schedules
 
-                if os.path.exists(schedule_file):
+            # ============================
+            # REMOVE SCHEDULED SLOTS
+            # ============================
 
-
-                    schedule = pd.read_excel(
-                        schedule_file
-                    )
+            if os.path.exists(schedule_file):
 
 
-                    schedule.columns = (
-                        schedule.columns
-                        .str.strip()
-                    )
+                schedule = pd.read_excel(
+                    schedule_file
+                )
+
+
+                schedule.columns = (
+                    schedule.columns
+                    .str.strip()
+                )
 
 
 
-                    for _, row in schedule.iterrows():
+                for _, row in schedule.iterrows():
 
-                        slots = slots[
-                            ~(
-                                (slots["Day"] == row["Day"])
-                                &
-                                (slots["Date"].astype(str) == str(row["Date"]))
-                                &
-                                (slots["Presentation Slot"] == row["Presentation Slot"])
+
+                    slots = slots[
+
+                        ~(
+
+                            (slots["Day"] == row["Day"])
+
+                            &
+
+                            (
+                                slots["Date"].astype(str)
+                                ==
+                                str(row["Date"])
                             )
-                        ]
+
+                            &
+
+                            (
+                                slots["Presentation Slot"]
+                                ==
+                                row["Presentation Slot"]
+                            )
+
+                        )
+
+                    ]
 
 
 
     return render_template(
-        "available_slots.html",
-        slots=slots
+    "available_slots.html",
+    slots=slots,
+    selected_count=student_requests
     )
 
 @app.route("/request_slot", methods=["POST"])
 def request_slot():
-
 
     student_id = session.get("student_id")
 
@@ -1940,7 +2101,6 @@ def request_slot():
     request_file = "data/presentation_requests.xlsx"
 
     student_file = "data/student.xlsx"
-
 
 
 
@@ -1961,7 +2121,11 @@ def request_slot():
 
 
     student = students[
-        students["Student ID"] == student_id
+
+        students["Student ID"].astype(str).str.strip()
+        ==
+        str(student_id).strip()
+
     ]
 
 
@@ -1976,10 +2140,34 @@ def request_slot():
 
 
 
+    # ============================
+    # GET SELECTED SLOTS
+    # ============================
+
+    selected_slots = request.form.getlist(
+        "selected_slots"
+    )
+
+
+
+    if len(selected_slots) == 0:
+
+        return redirect(
+            "/available_slots"
+        )
+
+
+
+    if len(selected_slots) > 3:
+
+        return redirect(
+            "/available_slots"
+        )
+
 
 
     # ============================
-    # CHECK EXISTING REQUEST
+    # LOAD REQUEST FILE
     # ============================
 
     if os.path.exists(request_file):
@@ -1996,33 +2184,6 @@ def request_slot():
         )
 
 
-
-        existing = requests[
-
-            (requests["Student ID"] == student_id)
-
-            &
-
-            (requests["Status"].isin(
-                [
-                    "Pending",
-                    "Scheduled"
-                ]
-            ))
-
-        ]
-
-
-
-        if not existing.empty:
-
-
-            return redirect(
-                "/request_status"
-            )
-
-
-
     else:
 
 
@@ -2031,89 +2192,166 @@ def request_slot():
 
 
 
-
-    # ============================
-    # GET SELECTED SLOT DETAILS
-    # ============================
-
-    supervisor = request.form["supervisor"]
-
-    marker = request.form["marker"]
+    new_requests = []
 
 
+
+    supervisor = None
+
+    marker = None
 
 
 
     # ============================
-    # CREATE REQUEST
+    # CREATE MULTIPLE REQUESTS
     # ============================
 
-    new_request = {
-
-
-        "Student ID":
-
-        student_info["Student ID"],
+    for index in selected_slots:
 
 
 
-        "Student Name":
-
-        student_info["Student Name"],
-
-
-
-        "Supervisor":
-
-        supervisor,
+        day = request.form.get(
+            f"day_{index}"
+        )
 
 
-
-        "2nd Marker":
-
-        marker,
-
+        date = request.form.get(
+            f"date_{index}"
+        )
 
 
-        "Day":
-
-        request.form["day"],
-
-
-
-        "Date":
-
-        request.form["date"],
+        slot = request.form.get(
+            f"slot_{index}"
+        )
 
 
-
-        "Presentation Slot":
-
-        request.form["slot"],
-
+        supervisor = request.form.get(
+            f"supervisor_{index}"
+        )
 
 
-        "Status":
-
-        "Pending",
-
-
-
-        "Supervisor Status":
-
-        "Pending",
-
-
-
-        "2nd Marker Status":
-
-        "Pending"
-
-    }
+        marker = request.form.get(
+            f"marker_{index}"
+        )
 
 
 
 
+        # Prevent duplicate request
+
+        if not requests.empty:
+
+
+            duplicate = requests[
+
+                (requests["Student ID"].astype(str)
+                ==
+                str(student_id))
+
+                &
+
+                (requests["Date"].astype(str)
+                ==
+                str(date))
+
+                &
+
+                (requests["Presentation Slot"].astype(str)
+                ==
+                str(slot))
+
+            ]
+
+
+
+            if not duplicate.empty:
+
+                continue
+
+
+
+
+        new_requests.append({
+
+
+            "Student ID":
+
+            student_info["Student ID"],
+
+
+
+            "Student Name":
+
+            student_info["Student Name"],
+
+
+
+            "Supervisor":
+
+            supervisor,
+
+
+
+            "2nd Marker":
+
+            marker,
+
+
+
+            "Day":
+
+            day,
+
+
+
+            "Date":
+
+            date,
+
+
+
+            "Presentation Slot":
+
+            slot,
+
+
+
+            "Status":
+
+            "Pending",
+
+
+
+            "Supervisor Status":
+
+            "Pending",
+
+
+
+            "2nd Marker Status":
+
+            "Pending"
+
+        })
+
+
+
+
+
+    # No new request
+
+    if len(new_requests) == 0:
+
+        return redirect(
+            "/request_status"
+        )
+
+
+
+
+    # ============================
+    # SAVE REQUESTS
+    # ============================
 
     requests = pd.concat(
 
@@ -2121,16 +2359,13 @@ def request_slot():
 
             requests,
 
-            pd.DataFrame(
-                [new_request]
-            )
+            pd.DataFrame(new_requests)
 
         ],
 
         ignore_index=True
 
     )
-
 
 
 
@@ -2143,19 +2378,23 @@ def request_slot():
     )
 
 
-    # ============================
-    # CREATE STAFF NOTIFICATIONS
-    # ============================
 
+
+    # ============================
+    # STAFF NOTIFICATION
+    # ============================
     create_staff_notification(
 
         supervisor,
 
         student_info["Student ID"],
 
-        student_info["Student Name"]
+        student_info["Student Name"],
+
+        len(new_requests)
 
     )
+
 
 
     create_staff_notification(
@@ -2164,14 +2403,36 @@ def request_slot():
 
         student_info["Student ID"],
 
-        student_info["Student Name"]
+        student_info["Student Name"],
+
+        len(new_requests)
 
     )
 
 
+
+
     # ============================
-    # SEND OUTLOOK EMAIL TO SUPERVISOR
+    # EMAIL WITH ALL SELECTED SLOTS
     # ============================
+
+    selected_text = ""
+
+
+
+    for item in new_requests:
+
+
+        selected_text += (
+
+            f"{item['Day']} - "
+            f"{item['Date']} - "
+            f"{item['Presentation Slot']}\n"
+
+        )
+
+
+
 
     send_lecturer_request_email(
 
@@ -2181,16 +2442,11 @@ def request_slot():
 
         student_info["Student Name"],
 
-        request.form["date"],
-
-        request.form["slot"]
+        selected_text
 
     )
 
 
-    # ============================
-    # SEND OUTLOOK EMAIL TO 2ND MARKER
-    # ============================
 
     send_lecturer_request_email(
 
@@ -2200,18 +2456,15 @@ def request_slot():
 
         student_info["Student Name"],
 
-        request.form["date"],
-
-        request.form["slot"]
+        selected_text
 
     )
-
 
 
 
 
     print(
-        "Request submitted and notifications created"
+        "Multiple presentation slots submitted"
     )
 
 
