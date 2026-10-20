@@ -26,6 +26,9 @@ from datetime import datetime
 from notification import create_staff_notification
 from notification import create_student_notification
 
+from student_email_notification import send_student_status_email
+from lecturer_email_notification import send_lecturer_request_email
+
 app = Flask(__name__)
 
 app.secret_key = "apss_secret_key"
@@ -1060,6 +1063,13 @@ def staff_approve_request(index):
 
         )
 
+        # Send Outlook email
+
+        send_student_status_email(
+            student_id,
+            "Approved"
+        )
+
 
 
 
@@ -1171,6 +1181,13 @@ def staff_reject_request(index):
 
             "Your presentation request has been rejected. Please choose another available presentation slot."
 
+        )
+
+        # Send Outlook email
+
+        send_student_status_email(
+            student_id,
+            "Rejected"
         )
 
 
@@ -1521,7 +1538,7 @@ def mark_staff_notification_read(index):
 
 
 
-    return redirect("/staff_notifications")
+    return redirect("/index")
 
 
 # ================= STUDENT PORTAL =================
@@ -2130,7 +2147,6 @@ def request_slot():
     # CREATE STAFF NOTIFICATIONS
     # ============================
 
-
     create_staff_notification(
 
         supervisor,
@@ -2142,7 +2158,6 @@ def request_slot():
     )
 
 
-
     create_staff_notification(
 
         marker,
@@ -2150,6 +2165,44 @@ def request_slot():
         student_info["Student ID"],
 
         student_info["Student Name"]
+
+    )
+
+
+    # ============================
+    # SEND OUTLOOK EMAIL TO SUPERVISOR
+    # ============================
+
+    send_lecturer_request_email(
+
+        supervisor,
+
+        student_info["Student ID"],
+
+        student_info["Student Name"],
+
+        request.form["date"],
+
+        request.form["slot"]
+
+    )
+
+
+    # ============================
+    # SEND OUTLOOK EMAIL TO 2ND MARKER
+    # ============================
+
+    send_lecturer_request_email(
+
+        marker,
+
+        student_info["Student ID"],
+
+        student_info["Student Name"],
+
+        request.form["date"],
+
+        request.form["slot"]
 
     )
 
