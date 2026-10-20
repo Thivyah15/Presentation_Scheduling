@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 15, 2026 at 05:50 AM
+-- Generation Time: Oct 20, 2026 at 11:00 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -1022,10 +1022,7 @@ INSERT INTO `staff` (`id`, `lect_id`, `staff_name`, `email`) VALUES
 (980, 'ZUHAIRAH', 'ZUHAIRAH BINTI KUNCH AHAMMED', 'zuhairah@apu.edu.my'),
 (981, 'ZULHAIRY.SAHARI', 'ZULHAIRY BIN SAHARI', 'zulhairy.sahari@apu.edu.my'),
 (982, 'JULIE', 'ZULIANA TONG BINTI ABDULLAH', 'julie@apu.edu.my'),
-(983, 'ZULKIFLI', 'ZULKIFLLI BIN MOHD SHOKHIR', 'zulkifli@apu.edu.my'),
-(984, 'L001', 'Demo Lecturer 1', 'demo1@apu.edu.my'),
-(985, 'L002', 'Demo Lecturer 2', 'demo2@apu.edu.my'),
-(986, 'L003', 'Demo Lecturer 3', 'demo3@apu.edu.my');
+(983, 'ZULKIFLI', 'ZULKIFLLI BIN MOHD SHOKHIR', 'zulkifli@apu.edu.my');
 
 --
 -- Indexes for dumped tables
