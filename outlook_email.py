@@ -1,3 +1,4 @@
+import os
 import smtplib
 from email.message import EmailMessage
 
@@ -5,7 +6,7 @@ from email.message import EmailMessage
 def send_outlook_email(receiver, subject, message):
 
     sender_email = "TP083606@mail.apu.edu.my"
-    sender_password = "Thivyah@1503"
+    sender_password = os.getenv("EMAIL_PASSWORD")
 
 
     email = EmailMessage()
