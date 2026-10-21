@@ -1,66 +1,75 @@
-import mysql.connector
+import os
 import requests
+import pandas as pd
 from bs4 import BeautifulSoup
 from openpyxl import Workbook
-import os
-
 
 
 # ==========================================
-# Get Lecturer ID from MySQL
+# Get Lecturer ID from staff.xlsx
 # ==========================================
-
 def get_lect_id(staff_name):
 
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="schedule"
-    )
+    file = "data/staff.xlsx"
 
+    if not os.path.exists(file):
 
-    cursor = conn.cursor(dictionary=True)
+        print("staff.xlsx not found.")
 
-
-    cursor.execute(
-        """
-        SELECT lect_id 
-        FROM staff 
-        WHERE staff_name = %s
-        """,
-        (staff_name,)
-    )
-
-
-    row = cursor.fetchone()
-
-
-    cursor.close()
-    conn.close()
-
-
-
-    if row:
-        return row["lect_id"]
-
-    else:
         return None
 
 
+    staff = pd.read_excel(file)
 
+
+    staff.columns = (
+        staff.columns
+        .str.strip()
+    )
+
+
+    staff["Staff Name"] = (
+        staff["Staff Name"]
+        .astype(str)
+        .str.strip()
+    )
+
+
+    staff_name = staff_name.strip()
+
+
+    result = staff.loc[
+        staff["Staff Name"] == staff_name,
+        "Lect ID"
+    ]
+
+
+    if not result.empty:
+
+        return str(
+            result.iloc[0]
+        ).strip()
+
+
+    else:
+
+        return None
 
 
 # ==========================================
 # Retrieve timetable from APU
 # Save as Excel
 # ==========================================
+def save_timetable(
+        staff_name,
+        week,
+        file_path
+):
 
-def save_timetable(staff_name, week, file_path):
 
-
-    lect_id = get_lect_id(staff_name)
-
+    lect_id = get_lect_id(
+        staff_name
+    )
 
 
     if lect_id is None:
@@ -72,10 +81,9 @@ def save_timetable(staff_name, week, file_path):
         return False
 
 
-
-
-    url = "https://api.apiit.edu.my/timetable-print/index.php"
-
+    url = (
+        "https://api.apiit.edu.my/timetable-print/index.php"
+    )
 
 
     params = {
@@ -91,8 +99,6 @@ def save_timetable(staff_name, week, file_path):
     }
 
 
-
-
     response = requests.get(
         url,
         params=params
@@ -102,25 +108,20 @@ def save_timetable(staff_name, week, file_path):
     response.raise_for_status()
 
 
-
     soup = BeautifulSoup(
         response.text,
         "html.parser"
     )
 
 
-
     rows = soup.find_all("tr")
-
 
 
     wb = Workbook()
 
     ws = wb.active
 
-
     ws.title = "Timetable"
-
 
 
     ws.append(
@@ -132,13 +133,10 @@ def save_timetable(staff_name, week, file_path):
     )
 
 
-
-
     for tr in rows:
 
 
         cells = tr.find_all("td")
-
 
 
         if len(cells) >= 2:
@@ -154,7 +152,6 @@ def save_timetable(staff_name, week, file_path):
             )
 
 
-
             ws.append(
                 [
                     staff_name,
@@ -164,19 +161,15 @@ def save_timetable(staff_name, week, file_path):
             )
 
 
-
-
     os.makedirs(
         "data",
         exist_ok=True
     )
 
 
-
     wb.save(
         file_path
     )
-
 
 
     print(
@@ -187,13 +180,9 @@ def save_timetable(staff_name, week, file_path):
     return True
 
 
-
-
-
 # ==========================================
 # Main function called by Flask
 # ==========================================
-
 def retrieve_timetable(
         staff_name,
         week,
@@ -209,14 +198,12 @@ def retrieve_timetable(
         )
 
 
-
     elif role == "second_marker":
 
 
         file_path = (
             "data/second_marker.xlsx"
         )
-
 
 
     else:
@@ -229,9 +216,6 @@ def retrieve_timetable(
         return False
 
 
-
-
-
     result = save_timetable(
         staff_name,
         week,
@@ -239,17 +223,12 @@ def retrieve_timetable(
     )
 
 
-
     return result
-
-
-
 
 
 # ==========================================
 # Test without Flask
 # ==========================================
-
 if __name__ == "__main__":
 
 
@@ -266,7 +245,6 @@ if __name__ == "__main__":
     role = input(
         "Enter Role (supervisor/second_marker): "
     )
-
 
 
     retrieve_timetable(

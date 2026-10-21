@@ -1,44 +1,62 @@
+import os
 import requests
-import mysql.connector
+import pandas as pd
 
-conn = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="schedule"
-)
-
-cursor = conn.cursor()
-
+# ==============================
+# API SETTINGS
+# ==============================
 url = "https://api.apiit.edu.my/staff/listing"
 
 headers = {
-    "Authorization": 
-"Bearer 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"
+    "Authorization": "Bearer H4sIAKFV2GoC/+16XXOjypLtL5oJCoTn6NFYFAiLwhT1AfUyAZTaCAoJW9hC/PpJJHdP947dZ2afO3Nj7seDw4EKFZWZKzPXSrS/Rk0V1IfkEG35vEXksD1vj9Stn7YP227IxVO0/uf9NbIqezSVWbeFJCeVweJxrKvD4+v2yau3HW4LW8w1op+lLT7y5cvh9/X7X/4UHchcXMlmuyKZ5RQ2X+0YPZAgHpMNbZMn6xIHqaU23oH08UwC/hEHyqjN41yweCSbx6t6sizSxvNO+qvCTsck2M7x5nUVt9srYcTs5PSpbPOx69FQONFnba97Haw/qsB8qMxtK9sa4fytyskMn78ruRoV6+yiTacEzhHbhUuullW0Xr+T2ylu0zGW5BDb25lsdBNvlNkxr1cyvcS2P+8Y/O9TOFsxx1fUJAHpdqw5xPPjKtlsr3HLZ5WhY92vUf3kXpXE3a7H5+rJu38WIFPJyNSHX9Y+60B8lDJ9rcPoU/XmrDIP1ba47o6RKeBzJVFTyqnetqfXPZo+vvv4J1+3dS86JV2rlPicOxDQQNzuhzWvsImpHcLvMb0cdvhP95iVJFeV0+/fM3t+uijReCVfD1k3yljggfnkWUvwvxxKbnV2JqdzZqGtChsifIVEJzLdR2Plr7no+LUQTRYLIoUZRMyjTAr9XAa4KIP1S4YHR2y8di+KKeuQpA657V8GUVjY5qXkAxP5EMXcHbKcRFVfT8onEenMR9YKWvXaYv0ga0HHhFFGcRQKIU6qcz/qoGnLWUxScFRxd3P7fk4vsvsHv992Hyo3cDaac7mczTiMU09byE9zTfbM+7qe+HJNfWzJfFjWN3F4u/7lfri+2VoH8cxu+w2fym8ybZOHylFxbK0uhdOh2MY5kSNgkj6wwEJVQDdJqMtKqHfYLyl95MYbD/Yb3hmmNO7QA8upEkHzJrv4QrB5Y7l+oYF2mVx8aV1FrqIy10MhdBD75q1ymmTfjy4zVO05eiudIU6tAUmJFMT+jTLyIvxuAl9Fe77mbPGlKKzCWnyJeDELUhp+hXWy79xB20YJy327xwptvq7dTA6fJUfsFguu3grbJbD/ubZNS9HwDjF/Vv60yfqmEXMzMLhOjZK0izo+v1rSiCA1WFCjy30XPRcz+A+TMclpu+8Gi8kxyBDBrCO7eIO3TOhEc/S+D0ZRouGqeI0qHI3CNG3VbW0ph26PdSC6dRMfveeC4Qvx10L7k5LBxZb9eWJIhTSPGu7QkrfRJesuk3JUSfuGFYxIKvGoZ8yEBbkSni4JN3f7Z7zYeykAa2lLSvBnd8c22aY9fN+eHgpLr8pAQHybg0DiZm+FDYvhXNQeLSmap31PQtpDrs34oZi3K+0v+Glu8VvWNeDjjsfhzBAtS+76gGQFeHyQ/fAeAx55bwhFxgJ78R6wHIeNijvzANck9ldXmuukEmL4cb6jV1JriY9ZcuWNSrPg4QNyuayC6JzkYrHvfIunULj0B1kF0xO3yFMK/kmlFnEw5VyIVWbou/Ijzi0zZxKdS5tuq1BHZb8eFG6SKiD33JaTA7UhK224ZoDPTqyYiK0FjzQXCeAXMQF2dTf/HgA/gIdbLp95ZxjUlxKed1QIs0TgiHbus+jHgAkiCG+oYN69dvU//DWw4wB4d/2M0YTPj7NkkSD+zV8JtZDFLJqV3fqev8iH2kGfwL8jy4eEIvG1X/SRHk0J/uiLOTqXFuSTbQT4fwX5CFhazk+JwGbFOnok3IV8wUk6w7qgZKkHgGNYxxZct9pa+1DzIB/jK7Piy953Ie4RmGTuz7OjkLYexHmpvQPkD+TLUXfCnt6/8utWf8BPS71JIF+4gPiWHYLnk6i2oPb165v/wb8oNRpXfrTUF6p8kRGOBPiOQPxtBbV936fXChAlnIbK9nG65V8XUcHVE/g7iNGv16nxLxBvWTqPCK6xvudDG3euc8fLds6OqpM+RkIiWeJhQ3h0oI4+8nbxJy3Szl38OUjTRFqIUfRNmc7iqei0o6A3p/10ALy8ZxzyA3qRPHoHiMcR8vqGJ4h4KSwF61pqbPIqJPd69+/xgXrpL/WN7oUZl/iU/TQu9RLqVygYjRfLWI+W+OWcwXpnXVgbQbzWPGX0az8ioQ8s+8kS+ZNs/dVe0o/SaYzggyy6eFLm9cKXGAjoB1BfSqQ5O4qGcvUgWuLFiGyzbk1jw2fZT50OoG4s+WCic9GjQEsaJDngy6aXot0iteDiqFr6VS9SI77f/723vaU9KgWCfsMivO8Az4CHCp4P+IP8gX4hmxdquUu/OAFeHsCeF+qbpT+IPcDsvp9CkO9BLAb5h3wP0qWf+NYV8FWmMsop+B/icyqsRmgx5LzFccV8lEnjlBLieRQ3vAFD8RZ8w7kIxYNXGB3UQbSB+tdmWCBpdBbzaYyZuPkX6kNW+/d4ldCrhRVPdU8KakQG9ZCwTjxXNv0QLe3EbAB/d3yDH9uv/AD8oXvv75fe33zvN6rsYyR79Ay9PeQQ/9iokaH4EvvQt2YB8ddLvhIN+SehforgfJGGHoGLQPxFVG08qGfuCTrolEiopwb6uT3guFtzzjD4B/rwcaDLeUrI2JiZk2QkU2YYWevd8y83Hrnnh6FQ3+UmWvwdJNL9OZ+/84Uln8m9/msC9eM738jZF9/4A7/4Wv9l/zKGfLvVV+cReAe6ZCYKgI/xGEcC/HZOoZ/s/aakKIL4045DPSixeQF/vytRT5XlCt4PLLankufQX4zKtU8WfIRqg8/Sd/M9HnLoQQ7wwY7bYsyM+ar/X/7KvTLzh3PxhVcq9VL/bvWNBFHB+gXfJ/B3c9LWT/ykB3xy9wHwA/3oZBWQ75AP81LPqyP5OR9fBPQwYTXnOKDQ76OD4Kur7AT0KRyA5jA0aHABfRZsDBjDOdTAFy6HE9SpN/BHVlqDDfEH90csa80vzxO9KWIzfPEb8ybh/Hv+k33MAzxsL0v89oADzqJkb/zrUu/Jwm9aegA/9cqvUYxfr9Cnu/TGpQelLOQuXJPik1vbQ6wRbqVZ+ylroBa4L1p0ThxGp8zRgnTRDmpTEDPSyCPZVJsGJaEnU6nsnVShhPuAH66KfvoW9+NIcmOXM/GJTTLhDCXYCLoF28rGbmrzOQX9o/3mIxb+tcrVQ+koVQnN9kI3dPZC8KddH4XIULeC/ICsGwTpxxM1XhGH4A+of8Q36d40pMba3Qsc5varU29Mo9oopj59LvOGxJ0OYyNihvG2sqOW9/QZ7Ga6Jb129IvaCLw3gCD/b5fYoTvKtMOtcaekuVR+d8lwOvJZjNzBBmLwlM8C9JTv0gz1rBcPgE0E/CZV3CQc63APOnLH6ktp0gsXUUI3j7Y4cqQc8VwKc2Zcs9Lp7H0feYlogPF7SSxUqo+Pc201kzDiM+1WKO3gM0sMpdTPwPzeS66T4th0xeylCtGskuNHPZsWNKGI+/V7CgUDtPE5D1avv+ot0NB981lJ8W3Rp5UjPjRe+NAFhPmytnVIu7Xi9hXtwCuKvY4k2FrF1VqBfgYd/XhRG9rFwdYGJWqpbHVRoP/iDWli0LPxJgJdmtrxHI8Fa1rQ0auijS/J5hU06hY0BWjDw/SLXr/9wfNBQ9plHn1WPWjV4w8teK5sPVQHdyxBI1YO+VRHCvdMQ9Xzj8Jej7+3k5xL+Uf7uEt6sA/OtmOkT1i92HdRB3SI2RZihduiBR0+p07BHm0lfqtZrSKPjj9p1vBLe2c3fd3d9PX9M/+H9v557c+0t7hpb/MH7f0bf4HubqoAfT1/+18Wh/u8wv2mQ3NZ7L/5rYMz5WDD7zX8fV4j6bfih0+2E5m7K2EF/HXz7+MkVnVgQP+Tb5Xt/vG7iw3o730XVNSHAiWV2/+ZfaJfbP4mvmwJrR/7f80tPqHmWf+T50t/dc8/s+V7zMtgPSqxbn7YbZvudj+sFW1tx216TTZ8hPptwD6raCnkz6tVzK9jvPE6EqTAERU8nZpd+xfnVr/PMagDaoAc+qhuefw9h/8j36D/7TlTBcu8cvqvqam/98dtNlf1ePyRl4amEOOZtI92Giz14vJR5B7agV06c8f97/dqdE5PlRMNkOd/yHXEOKLsP5krkcL/82exoAXuc+UDMglTB7KBva7WrNrOWc4TB8VYtP6VPFlTAToP4m4R27+Qnv/lPNvd/fgvv+lJwBfo0t+GBS+/+t104l57f49fWyzzVut7bi5zwTgQRXqfK+xEi+lNl/fNgdrkptOARj9kDCfljSciq/7i4VV3Qly6R9AZb+KIecU6i1s0A30nykAl1dE7FfYZ1UBCiEQJ8FAXcOXC3h1ovPvMyF9zucwsfG7JvLuAhnsDnhcLHA3AbRRo4Deam9vMQbIo2hvzxhhwnE44i8a9zxA88Da672fTLT/qdt+vbbaJVtqcrlUoQNPhC2gY0OjxNZGoo7NBoMnPoPkYkcMhbj0bnldWeAANMijho0VzensxbKA+LTOIB4Y1Jri7guYCDWoeQKMciY/eMjif8N0z2xC159Nbep85XSRI5d/OIBmI0978OoOUQ0Q4ckHzlDJonDsHd4HLwv7wXODg76CJwd5/dIZluT9ix7t5OU8M51czBs1I3xaNCLEMM9AAe/YI9uuF8y8zmZLi6B38E8UG7GZe+aWJnsA/+aJZq244y64AfR5fxfEPMy6DCQ30AzzPA60ZgoZvhKPRMgNcNLPoxw44MdSt/7UZD/CuU4oMi3Oa0247MyRWe8Mn2g+AB/rCrdrNfPf9T2c8/U+alQnQDtiVEuFlBgb1vgT8PYA/bjM2iNcyc7SY0HSJ/x2PyGGIeqAh7vshNdz3W0vweZ4Fl4sKkOR9JFgblVSoc8EV1Gzhl75oyp42oDkB+Pqcdmta9q/LTPpUiOg9O6qEQrpwc/cPB334pbmeqmVmAZoZ8uFhmaGDhh4Bn3A/xCnvptJfh6wfIb4NaPYBzrf2Aa+AN/Egv/YTrdfc34cA/vxJKoc20EVWohNCY8jMjjQZPk2KN1IvM7Qbvk/XZcZ1e7+Sm7js8KCM/1F0Jikh/twCPcZEqG3kKgdPWv5tJhvxtuPxBL40oG2pxl4PeTHGHR320C3L1puobaJS4iPfNA7l7gs51o7ciLhGzQrOwkQrsOpSyA29K3KyTQ3YysWzYnjWfgoC37VBo+9qeXLKHiMqo4/CGle5Q0cZei/sSK/xpvlg8mzTboS8xAOd8ZiEfIq7yyWzh3DJpdrgMvHXLwxQqYCDlEe92eXDtswHl4joAfY7UNmt6hb0uFRDHFirndRxGXpp+YR2JSIvWVhPYAdNJBFJqAvg6DPl05yx5iwFcUUuNtxGeWHXaNHx3PanFHyVdlHI7de57JVX2pd53w954g9OaSuqjtGUW+O830RKsSYmIXANm6gsECk9UryTJyQY/iZ7IaWcRmKJh5oZyu2h1UeRVYESuxyf6XF4qPrTTOZ45pY7Jj561rID33hRsom8/+e13+395TR+75P/AFf+b9WUv+wdou/vt9c/uBrszXvRQ6+fy/8D+FX9/azh/aw7+Rd9klmjgr11/vixcHT15AJPv7zeP/NG0MLAdba/rFWOZ6redNvQu1a2GqqAv+qc/HjHvQ3EWEhz/nu6B+wxoB0/dGCaCq+tfe6Z75j5E///BmvELPv80Cet/5GKJkrl2uEh9fcMe9BjmsoZVO3oIbWgpwbrVdr7YyWaVM8G6iOhhRM7rGs+6azCVKjnPcferotoyiNPW8JL4Zr6+GVv1k+cp5d89mTcbyfWAn/ylat8fa6EyZdrbZnb/fCX1rYK0tacSKBXWU92qlWN9GmogcXxbtgK0Mui1w3wBGt/fLT3fLVKbc2zHkW0F8Ara6jJ9I3ZGKcmEtAvMtpNKN48QkOkDm21V4VRwWbSgZ5bAQtpSkudoN9PJVT72G4IHMVPePNWSLQhdu3mFoUaDVQ554621t8g75+kwTuo71uI+UE79aiCsStxxLRQn3GuTzGOV9D/rX0IveOAHlJhMLcUUqEuIT5NJryt6tYzC2u3sKdRd8OG+uIJfN4K6CQJX40V1++iNyzthm/7HPJkjtI9Fs+xbc57UyC5eXUryAd+jI6wvilnMXNunpSFQt3TN+2QlRLNJu7BFw7Ucwv6X6geyEYf61AFrI/cHHkp9GrBWY3EBvpk+OjqTpvSIh7l0YYa0B+BNcVCZIqjhhz9C3C/h4ppFluYJ9wtiMAhDSNZI9ozZt5Key2Bj79X0CvSo3nXvr4QHOF9i7d6E7s1cJx6fpxUQN6JI3ag5c9prj6UtUIl4pPsa7sMNKMc7wg/WzthVsBzv+3x1kqPeJdwYicblXDGXdBzbSb0oeAru+qUwzf4m7Ybq5y9XB6jRBy7izriRATaKFzPgJ95L14tsSG7uG0GgfFTcRwMYPGDzGqsOrwrBCgLB4eJ0DLzY7QPRQB98mMnhp3Gw7XKoy4VFIhOpBLfeMVRo7hf3lNp8HGjEkaUNK9OHQwb3Q8H2Q0H3dEi6+AzpF4qFI2xI+bYPjk8eJ2qWb1DfjwA1jvGG5yFQ59aayk32wvgwhc5biuz/tByGDTwcw1aTwk+CU4/SRgtc4JtcVRY+GQF1ziR9El1Ajq95+yPeopDbWoff+6P4jM1gyS9IjXiowiNTUKcVAv/QdgRRzJo8HXRIw6Ysyj4aidEoFj0Atyx0QGNaCiaCjgBaM1LjLcLX3IgJmVmsNIcU9Ktoec0b7QTeZID7zjqaz0bWljCzpxhU4gGYjF8sBB8HDQ9OXausgAXKMr2cvwkPc6Zo8LKF2YviZF5fUmkBT2eAqd1FUOeX7TA8VCTlbl5Am4jJOglqNeIc4WEv35mwTqvHcUyR530sUkgOqPgxch91RT938b6SL/tOZrKQJgKYyN6egRtN0BMRiYtq7KiThqdctukzI7eQEMyKV0ntoYZ+JVTd+vTPh9kvWleFB9deoV+ALyc29tLHYyilutLHNIkk+ZNhP4F4nQprNhOAmx46C2RcRKucJwLWltuVBk9xuz1onvxyVvgyJtGAnZzWLtALXbLXB8UM6TyEeSQTiuOP6tj45TW8nsf88mO3Yr2pkhAw+6P8Qg5CHUooglwvtifJsqbkQYxqrppK/q/ObWgGfNJUImoo8KbuENMirRVzY+jdrwkO9JjelRuKlVRYkOF4/EC4eZ2doM32dw813lkxzxd1aBHk2AcMuDr8LwMeCBwQBIxHjtF6x1A71n6qEEHpdfcdk8U6jmxzW7fNkEcNG+pvQatjWdqQy4z7wj+k8A5rwwPL3VLaW6LTvvRKZHGBrw+C5ueK2lOUE9fuIwgPw3gH2Exe1zZU6quKFY95tqmLevXRIdQ21rSk6AAjeM+7FhzTXB00oE/CUw80ZI3sMGhHXFipN+ZVNDlIRfBt5LHFx5AtfS7GXQay4z3jYXFlCIaZ/04MYOfeahPwo92kFe7GusgC8kHC8YLP+onnp8uKW/c2DdPNf7btLwvTDv1WSHoBVJFdWic///e4//u9x5VAFoRr8fKpgN8vy1yOlS2+w043L/PRVvfSdgWQUwR9I56a362xVt/99u3bPr5t6WX5cw6wB3s2fyGbzd1CHwU1lWArSJD/2Gc/jIX/vvzw//O2P7j8/bf+VdMH9+y5Ye+t9+B3uIEsYd9t1PCugnyxSZX1KqND3nnT6r1IX9Az2QWrMRTHPgO2ZCOtI+Hb+k/F7uzd7w+WiT7p8u/Vtd/uTx3h/hfN6t/yp6frtVh/ZyEz8NHcpoj698Ai5sl4W8sAAA="
 }
+
+# ==============================
+# GET STAFF FROM API
+# ==============================
 response = requests.get(url, headers=headers)
 staff_list = response.json()
+
 print("Total staff from API:", len(staff_list))
 
-sql_check = """
-SELECT lect_id 
-FROM staff
-WHERE lect_id = %s
-"""
+excel_file = "data/staff.xlsx"
 
+# ==============================
+# LOAD EXISTING STAFF
+# ==============================
+if os.path.exists(excel_file):
 
-sql_insert = """
-INSERT INTO staff (lect_id, staff_name, email)
-VALUES (%s, %s, %s)
-"""
+    existing_df = pd.read_excel(excel_file)
 
+    existing_df.columns = (
+        existing_df.columns
+        .str.strip()
+    )
 
-new_staff = 0
+else:
+
+    existing_df = pd.DataFrame(
+        columns=[
+            "Lect ID",
+            "Staff Name",
+            "Email"
+        ]
+    )
+
+# Existing Lecturer IDs
+existing_ids = set(
+    existing_df["Lect ID"].astype(str)
+)
+
+new_staff = []
 existing_staff = 0
 
-
+# ==============================
+# CHECK & ADD NEW STAFF
+# ==============================
 for staff in staff_list:
-    lect_id = staff["CODE"]
+
+    lect_id = str(staff["CODE"]).strip()
     staff_name = staff["FULLNAME"].strip()
 
     staff_email = staff.get("EMAIL")
@@ -46,49 +64,48 @@ for staff in staff_list:
     if staff_email:
         staff_email = staff_email.strip()
     else:
-        staff_email = None
+        staff_email = ""
 
+    if lect_id in existing_ids:
 
-    # Check existing staff
-    cursor.execute(
-        sql_check,
-        (lect_id,)
-    )
-
-    result = cursor.fetchone()
-
-
-    if result:
-
-        # Already exist
         existing_staff += 1
 
     else:
 
-        # Insert new staff
-        cursor.execute(
-            sql_insert,
-            (
-                lect_id,
-                staff_name, 
-                staff_email
-            )
-        )
+        new_staff.append({
+            "Lect ID": lect_id,
+            "Staff Name": staff_name,
+            "Email": staff_email
+        })
 
-        new_staff += 1
+        existing_ids.add(lect_id)
 
+# ==============================
+# SAVE NEW STAFF
+# ==============================
+if new_staff:
 
+    new_df = pd.DataFrame(new_staff)
 
-conn.commit()
+    final_df = pd.concat(
+        [
+            existing_df,
+            new_df
+        ],
+        ignore_index=True
+    )
 
+    final_df.to_excel(
+        excel_file,
+        index=False
+    )
 
-cursor.close()
-conn.close()
-
-
+# ==============================
+# SUMMARY
+# ==============================
 print("==============================")
 print("STAFF IMPORT COMPLETED")
 print("==============================")
-
 print(f"Existing staff skipped : {existing_staff}")
-print(f"New staff added        : {new_staff}")
+print(f"New staff added        : {len(new_staff)}")
+print(f"Total staff in Excel   : {len(existing_df) + len(new_staff)}")

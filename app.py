@@ -1,7 +1,4 @@
 from flask import Flask, render_template, request, redirect, url_for, session, send_file
-
-import mysql.connector
-
 from save_apu_data import retrieve_timetable
 from find_common_availability import generate_common_availability
 from save_apu_data import save_timetable
@@ -37,23 +34,6 @@ app.secret_key = "apss_secret_key"
 
 # ================= DATABASE CONNECTION ================= #
 
-def get_db_connection():
-
-    conn = mysql.connector.connect(
-
-        host="localhost",
-
-        user="root",
-
-        password="",
-
-        database="schedule"
-
-    )
-
-    return conn
-
-
 @app.route("/")
 def welcome():
     return render_template("home.html")
@@ -63,45 +43,61 @@ def staff_login():
 
     if request.method == "POST":
 
-        email = request.form["email"]
+        email = request.form["email"].strip().lower()
 
+        file = "data/staff.xlsx"
 
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="schedule"
+        if not os.path.exists(file):
+
+            return render_template(
+                "staff_login.html",
+                error="staff.xlsx not found."
+            )
+
+        staff = pd.read_excel(file)
+
+        staff.columns = (
+            staff.columns
+            .str.strip()
         )
 
-
-        cursor = conn.cursor(dictionary=True)
-
-
-        cursor.execute(
-            """
-            SELECT *
-            FROM staff
-            WHERE email = %s
-            """,
-            (email,)
+        # Clean data
+        staff["Email"] = (
+            staff["Email"]
+            .fillna("")
+            .astype(str)
+            .str.strip()
+            .str.lower()
         )
 
+        staff["Staff Name"] = (
+            staff["Staff Name"]
+            .fillna("")
+            .astype(str)
+            .str.strip()
+        )
 
-        staff = cursor.fetchone()
+        staff["Lect ID"] = (
+            staff["Lect ID"]
+            .fillna("")
+            .astype(str)
+            .str.strip()
+        )
 
+        # Find matching email
+        result = staff[
+            staff["Email"] == email
+        ]
 
-        cursor.close()
-        conn.close()
+        if not result.empty:
 
+            lecturer = result.iloc[0]
 
-        if staff:
-
-            session["lect_id"] = staff["lect_id"]
-            session["staff_name"] = staff["staff_name"]
-            session["staff_email"] = staff["email"]
+            session["lect_id"] = lecturer["Lect ID"]
+            session["staff_name"] = lecturer["Staff Name"]
+            session["staff_email"] = lecturer["Email"]
 
             return redirect("/index")
-
 
         else:
 
@@ -109,7 +105,6 @@ def staff_login():
                 "staff_login.html",
                 error="Email not found"
             )
-
 
     return render_template("staff_login.html")
 
@@ -125,25 +120,56 @@ def index():
 @app.route("/timetable", methods=["GET", "POST"])
 def timetable():
 
+    # =====================================
+    # LOAD STAFF FROM staff.xlsx
+    # =====================================
 
-    conn = get_db_connection()
+    staff_file = "data/staff.xlsx"
 
-    cursor = conn.cursor()
-
-
-    cursor.execute("""
-        SELECT lect_id, staff_name
-        FROM staff
-        ORDER BY staff_name
-    """)
+    staff = []
 
 
-    staff = cursor.fetchall()
+    if os.path.exists(staff_file):
+
+        staff_df = pd.read_excel(
+            staff_file
+        )
 
 
-    cursor.close()
-    conn.close()
+        staff_df.columns = (
+            staff_df.columns
+            .str.strip()
+        )
 
+
+        # Rename Excel columns
+        staff_df = staff_df.rename(
+            columns={
+                "Lect ID": "lect_id",
+                "Staff Name": "staff_name",
+                "Email": "email"
+            }
+        )
+
+
+        # Clean staff name
+        staff_df["staff_name"] = (
+            staff_df["staff_name"]
+            .astype(str)
+            .str.strip()
+        )
+
+
+        # Sort alphabetically
+        staff_df = staff_df.sort_values(
+            by="staff_name"
+        )
+
+
+        # Convert for HTML
+        staff = staff_df.to_dict(
+            orient="records"
+        )
 
 
     success = None
@@ -151,16 +177,16 @@ def timetable():
 
 
 
-
     if request.method == "POST":
 
 
-        method = request.form.get("method")
-
+        method = request.form.get(
+            "method"
+        )
 
 
         # =====================================
-        # RETRIEVE SUPERVISOR FROM APU
+        # SUPERVISOR TIMETABLE
         # =====================================
 
         if method == "supervisor_api":
@@ -176,25 +202,27 @@ def timetable():
             )
 
 
-
             if supervisor and week:
 
 
                 result = save_timetable(
-
                     supervisor,
-
                     week,
-
                     "data/supervisor.xlsx"
-
                 )
 
 
+                if result:
 
-                success = (
-                    "Supervisor timetable retrieved successfully."
-                )
+                    success = (
+                        "Supervisor timetable retrieved successfully."
+                    )
+
+                else:
+
+                    error = (
+                        "Supervisor timetable retrieval failed."
+                    )
 
 
             else:
@@ -205,10 +233,8 @@ def timetable():
 
 
 
-
-
         # =====================================
-        # RETRIEVE 2ND MARKER FROM APU
+        # 2ND MARKER TIMETABLE
         # =====================================
 
         elif method == "marker_api":
@@ -224,25 +250,27 @@ def timetable():
             )
 
 
-
             if marker and week:
 
 
                 result = save_timetable(
-
                     marker,
-
                     week,
-
                     "data/second_marker.xlsx"
-
                 )
 
 
+                if result:
 
-                success = (
-                    "2nd Marker timetable retrieved successfully."
-                )
+                    success = (
+                        "2nd Marker timetable retrieved successfully."
+                    )
+
+                else:
+
+                    error = (
+                        "2nd Marker timetable retrieval failed."
+                    )
 
 
             else:
@@ -253,11 +281,8 @@ def timetable():
 
 
 
-
-
-
         # =====================================
-        # EXCEL UPLOAD
+        # UPLOAD EXCEL
         # =====================================
 
         elif method == "excel":
@@ -273,13 +298,10 @@ def timetable():
             )
 
 
-
             if file and excel_type:
 
 
-
                 if excel_type == "supervisor":
-
 
                     path = (
                         "data/supervisor.xlsx"
@@ -288,15 +310,12 @@ def timetable():
 
                 else:
 
-
                     path = (
                         "data/second_marker.xlsx"
                     )
 
 
-
                 file.save(path)
-
 
 
                 success = (
@@ -304,15 +323,11 @@ def timetable():
                 )
 
 
-
             else:
-
 
                 error = (
                     "Please select type and upload file."
                 )
-
-
 
 
 
@@ -475,22 +490,47 @@ def common_availability():
 @app.route("/students", methods=["GET", "POST"])
 def student_page():
 
-    conn = get_db_connection()
+    # =====================================
+    # LOAD STAFF FROM EXCEL
+    # =====================================
+    staff_file = "data/staff.xlsx"
 
-    cursor = conn.cursor()
+    if os.path.exists(staff_file):
 
-    cursor.execute("""
-        SELECT lect_id, staff_name
-        FROM staff
-        ORDER BY staff_name
-    """)
+        staff_df = pd.read_excel(staff_file)
 
-    staff = cursor.fetchall()
+        staff_df.columns = (
+            staff_df.columns
+            .str.strip()
+        )
 
-    cursor.close()
-    conn.close()
+        staff_df = staff_df.rename(
+            columns={
+                "Lect ID": "lect_id",
+                "Staff Name": "staff_name",
+                "Email": "email"
+            }
+        )
+
+        staff_df["staff_name"] = (
+            staff_df["staff_name"]
+            .astype(str)
+            .str.strip()
+        )
+
+        staff = (
+            staff_df
+            .sort_values("staff_name")
+            .to_dict(orient="records")
+        )
+
+    else:
+
+        staff = []
+
 
     message = None
+
 
     if request.method == "POST":
 
@@ -508,16 +548,22 @@ def student_page():
             marker
         )
 
+
     students = get_students()
 
-    # Filter students for the logged-in lecturer
+
+    # =====================================
+    # FILTER STUDENTS FOR LOGGED-IN LECTURER
+    # =====================================
     staff_name = session.get("staff_name")
 
     if staff_name and not students.empty:
+
         students = students[
             (students["Supervisor"] == staff_name) |
             (students["2nd Marker"] == staff_name)
         ]
+
 
     return render_template(
         "students.html",

@@ -369,15 +369,11 @@ Upload Excel
 
 <datalist id="staffList">
 
-
 {% for s in staff %}
 
-
-<option value="{{s[1]}}">
-
+<option value="{{ s.staff_name }}">
 
 {% endfor %}
-
 
 </datalist>
 
