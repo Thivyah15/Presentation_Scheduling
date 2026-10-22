@@ -1,47 +1,66 @@
-import mysql.connector
+import os
+import pandas as pd
 
 from outlook_email import send_outlook_email
-
 from config import APSS_URL
 
 
-
+# ==========================================
+# Get Lecturer Email from staff.xlsx
+# ==========================================
 def get_lecturer_email(lecturer_name):
 
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="schedule"
+    file = "data/staff.xlsx"
+
+    if not os.path.exists(file):
+
+        print("staff.xlsx not found.")
+
+        return None
+
+
+    staff = pd.read_excel(file)
+
+
+    staff.columns = (
+        staff.columns
+        .str.strip()
     )
 
 
-    cursor = conn.cursor(
-        dictionary=True
+    staff = staff.rename(
+        columns={
+            "Lect ID": "lect_id",
+            "Staff Name": "staff_name",
+            "Email": "email"
+        }
     )
 
 
-    cursor.execute(
-        """
-        SELECT email
-        FROM staff
-        WHERE staff_name = %s
-        """,
-        (lecturer_name,)
+    staff["staff_name"] = (
+        staff["staff_name"]
+        .fillna("")
+        .astype(str)
+        .str.strip()
     )
 
 
-    lecturer = cursor.fetchone()
+    staff["email"] = (
+        staff["email"]
+        .fillna("")
+        .astype(str)
+        .str.strip()
+    )
 
 
-    cursor.close()
-    conn.close()
+    result = staff[
+        staff["staff_name"] == lecturer_name.strip()
+    ]
 
 
+    if not result.empty:
 
-    if lecturer:
-
-        return lecturer["email"]
+        return result.iloc[0]["email"]
 
 
     else:
@@ -54,9 +73,9 @@ def get_lecturer_email(lecturer_name):
         return None
 
 
-
-
-
+# ==========================================
+# Send Lecturer Request Email
+# ==========================================
 def send_lecturer_request_email(
     lecturer_name,
     student_id,
@@ -75,15 +94,12 @@ def send_lecturer_request_email(
         return
 
 
-
     subject = "New Presentation Slot Request"
-
 
 
     system_link = (
         f"{APSS_URL}/staff_login"
     )
-
 
 
     message = f"""
@@ -99,11 +115,9 @@ Student ID: {student_id}
 Student Name: {student_name}
 
 
-
 Preferred Presentation Slots:
 
 {selected_slots}
-
 
 
 Please login to the Automated Presentation Scheduling System (APSS) to review and approve or reject this request.
@@ -113,14 +127,12 @@ System Link:
 {system_link}
 
 
-
 Thank you.
 
 Automated Presentation Scheduling System (APSS)
 
 This is an automated email. Please do not reply.
 """
-
 
 
     send_outlook_email(
