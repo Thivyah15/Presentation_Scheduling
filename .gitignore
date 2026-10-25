@@ -1,0 +1,11 @@
+
+# Hide environment files containing API tokens
+.env
+.env.*
+
+# Allow an example environment file
+!.env.example
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
