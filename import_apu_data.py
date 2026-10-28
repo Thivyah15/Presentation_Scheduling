@@ -1,4 +1,3 @@
-
 import os
 from pathlib import Path
 
@@ -6,124 +5,246 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
-# ==============================
-# LOAD TOKEN FROM .ENV
-# ==============================
-BASE_DIR = Path(__file__).resolve().parent
 
+# ======================================
+# PROJECT SETTINGS
+# ======================================
+BASE_DIR = Path(__file__).resolve().parent
+EXCEL_FILE = BASE_DIR / "data" / "staff.xlsx"
+API_URL = "https://api.apiit.edu.my/staff/listing"
+
+
+# ======================================
+# LOAD API TOKEN
+# ======================================
 load_dotenv(BASE_DIR / ".env")
 
 token = os.getenv("API_TOKEN")
 
 if not token:
     raise ValueError(
-        "API_TOKEN not found. Check your .env file."
+        "API_TOKEN was not found in the .env file."
     )
 
-# ==============================
-# API SETTINGS
-# ==============================
-url = "https://api.apiit.edu.my/staff/listing"
+token = token.strip()
+
 
 headers = {
-    "Authorization": f"Bearer {token}"
+    "Authorization": f"Bearer {token}",
+    "Accept": "application/json"
 }
 
-excel_file = BASE_DIR / "data" / "staff.xlsx"
 
-# ==============================
-# GET STAFF FROM API
-# ==============================
+# ======================================
+# RETRIEVE STAFF FROM API
+# ======================================
 try:
+
     response = requests.get(
-        url,
+        API_URL,
         headers=headers,
         timeout=30
     )
-    response.raise_for_status()
+
+    if response.status_code != 200:
+
+        print("API Error:")
+        print(response.text)
+
+        response.raise_for_status()
+
+
     staff_list = response.json()
 
+
+except requests.Timeout:
+
+    print("API request timed out.")
+    raise SystemExit(1)
+
+
 except requests.RequestException as error:
+
     print("Failed to retrieve staff:", error)
     raise SystemExit(1)
 
+
+except ValueError:
+
+    print("Invalid API response format.")
+    raise SystemExit(1)
+
+
+
+# ======================================
+# VALIDATE API RESPONSE
+# ======================================
 if not isinstance(staff_list, list):
-    raise ValueError("Unexpected API response format.")
 
-print("Total staff from API:", len(staff_list))
+    print("Unexpected API response.")
+    raise SystemExit(1)
 
-# ==============================
-# LOAD EXISTING STAFF
-# ==============================
-excel_file.parent.mkdir(parents=True, exist_ok=True)
 
-if excel_file.exists():
-    existing_df = pd.read_excel(excel_file)
-    existing_df.columns = existing_df.columns.str.strip()
+print(f"Retrieved {len(staff_list)} staff records.")
+
+
+
+# ======================================
+# LOAD EXISTING STAFF EXCEL
+# ======================================
+EXCEL_FILE.parent.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
+
+if EXCEL_FILE.exists():
+
+    existing_df = pd.read_excel(EXCEL_FILE)
+
 else:
+
     existing_df = pd.DataFrame(
-        columns=["Lect ID", "Staff Name", "Email"]
+        columns=[
+            "Lect ID",
+            "Staff Name",
+            "Email"
+        ]
     )
 
-for column in ["Lect ID", "Staff Name", "Email"]:
+
+existing_df.columns = (
+    existing_df.columns
+    .str.strip()
+)
+
+
+for column in [
+    "Lect ID",
+    "Staff Name",
+    "Email"
+]:
+
     if column not in existing_df.columns:
+
         existing_df[column] = ""
+
+
+existing_df = existing_df[
+    [
+        "Lect ID",
+        "Staff Name",
+        "Email"
+    ]
+]
+
 
 existing_ids = set(
     existing_df["Lect ID"]
-    .dropna()
     .astype(str)
     .str.strip()
 )
 
+
+
+# ======================================
+# PROCESS STAFF DATA
+# ======================================
 new_staff = []
 existing_staff = 0
 
-# ==============================
-# CHECK & ADD NEW STAFF
-# ==============================
+
 for staff in staff_list:
-    lect_id = str(staff.get("CODE") or "").strip()
-    staff_name = str(staff.get("FULLNAME") or "").strip()
-    staff_email = str(staff.get("EMAIL") or "").strip()
+
+
+    if not isinstance(staff, dict):
+        continue
+
+
+    lect_id = str(
+        staff.get("CODE", "")
+    ).strip()
+
+
+    staff_name = str(
+        staff.get("FULLNAME", "")
+    ).strip()
+
+
+    email = str(
+        staff.get("EMAIL", "")
+    ).strip()
+
+
 
     if not lect_id:
         continue
 
+
+
     if lect_id in existing_ids:
+
         existing_staff += 1
         continue
 
-    new_staff.append({
-        "Lect ID": lect_id,
-        "Staff Name": staff_name,
-        "Email": staff_email
-    })
+
+
+    new_staff.append(
+        {
+            "Lect ID": lect_id,
+            "Staff Name": staff_name,
+            "Email": email
+        }
+    )
+
 
     existing_ids.add(lect_id)
 
-# ==============================
-# SAVE NEW STAFF
-# ==============================
+
+
+# ======================================
+# SAVE STAFF TO EXCEL
+# ======================================
 if new_staff:
+
+
     new_df = pd.DataFrame(new_staff)
 
+
     final_df = pd.concat(
-        [existing_df, new_df],
+        [
+            existing_df,
+            new_df
+        ],
         ignore_index=True
     )
 
-    final_df.to_excel(excel_file, index=False)
-    total_staff = len(final_df)
-else:
-    total_staff = len(existing_df)
 
-# ==============================
-# SUMMARY
-# ==============================
-print("==============================")
+else:
+
+    final_df = existing_df
+
+
+
+final_df.to_excel(
+    EXCEL_FILE,
+    index=False
+)
+
+
+
+# ======================================
+# IMPORT SUMMARY
+# ======================================
+print()
+
+print("=" * 40)
 print("STAFF IMPORT COMPLETED")
-print("==============================")
+print("=" * 40)
+
 print(f"Existing staff skipped : {existing_staff}")
 print(f"New staff added        : {len(new_staff)}")
-print(f"Total staff in Excel   : {total_staff}")
+print(f"Total staff            : {len(final_df)}")
+print(f"Excel file             : {EXCEL_FILE}")
+
+print("=" * 40)
